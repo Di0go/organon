@@ -7,7 +7,7 @@
 export const ACCENTS = [
   { id: 'green', label: 'Green', swatch: '#5cc488' },
   { id: 'blue', label: 'Blue', swatch: '#4f8cef' },
-  { id: 'red', label: 'Red', swatch: '#e04c53' },
+  { id: 'red', label: 'Red', swatch: '#dc3864' },
   { id: 'violet', label: 'Violet', swatch: '#8a6ff0' },
   { id: 'graphite', label: 'Graphite', swatch: '#8a8a8a' },
 ] as const;

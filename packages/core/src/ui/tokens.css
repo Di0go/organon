@@ -6,7 +6,8 @@
    --on-acc in dark mode, and draws chart series in a fixed order validated for colour blindness instead of the
    accent (Aristotle's --series-1 was the accent, so a chart changed colour with it). An app sets its own default
    accent (theme.svelte.ts, theme-boot.js) and adds tokens of its own after this file (Aristotle's --files-w for its
-   library pane). Older token names (--paper, --link, --serif…) are aliases the components of both apps still read. */
+   library pane). Red is a crimson (Oklab hue 10), and under it --wrong is a vermilion (hue 38 to 42): red as an
+   accent must never read as an error (tests/ui.test.ts holds them apart). Older token names (--paper, --link, --serif…) are aliases the components of both apps still read. */
 
 /* Tokens: colours for each theme and accent */
 :root {
@@ -39,7 +40,9 @@
   --acc: #2b8f55;
 }
 :root[data-accent='red'] {
-  --acc: #d1343c;
+  --acc: #bf124e;
+  /* Under a red accent, what says a problem moves to vermilion, so a link and an error never look the same. */
+  --wrong: #bc461e;
 }
 :root[data-accent='violet'] {
   --acc: #7c5cdb;
@@ -84,8 +87,9 @@
   --on-acc: #0f2a1a;
 }
 :root[data-theme='dark'][data-accent='red'] {
-  --acc: #f2636a;
-  --on-acc: #ffffff;
+  --acc: #f15f7f;
+  --on-acc: #2a0a12;
+  --wrong: #ee7746;
 }
 :root[data-theme='dark'][data-accent='violet'] {
   --acc: #9a82ff;

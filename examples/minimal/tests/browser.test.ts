@@ -83,7 +83,7 @@ test("The install's accent, set in settings.json, is the page's until the browse
     const page = await browser!.newPage();
     await page.goto(fresh.base);
     assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), 'red');
-    assert.equal(await page.evaluate(token('--acc')), '#f2636a');
+    assert.equal(await page.evaluate(token('--acc')), '#f15f7f');
     // Who runs the agent is changed through the core's settings, and the install's accent stays in the file.
     await page.getByRole('combobox').selectOption('codex');
     await page.waitForFunction(async () => (await (await fetch('/api/settings')).json()).tutor === 'codex');

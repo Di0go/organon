@@ -3,6 +3,17 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.5.1
+
+**What an app changes:** nothing. An app whose accent is red looks different, as it should:
+
+- **Fix:** the red accent (`#d1343c`, dark `#f2636a`) was the red of `--wrong` (`#c43c3c`, dark `#ef6b6b`): a link, a
+  selected row or a live dot looked like an error. Red is now a crimson, `#bf124e` (dark `#f15f7f`, with a dark
+  `--on-acc`, `#2a0a12`, since white on it read at 3:1), and under it `--wrong` moves to a vermilion, `#bc461e` (dark
+  `#ee7746`), so what says a problem still reads as one and never as the accent. Both read at 4.5:1 or more on their
+  ground; `tests/ui.test.ts` holds them at least 0.09 apart in Oklab, in light and in dark. The picker's swatch
+  follows. `--heart` is unchanged (it is red whatever the accent). Argus's default accent is red.
+
 ## 0.5.0
 
 **What an app changes:** nothing to keep working. `LookPicker` now speaks the app's language (`setWords`); an app
