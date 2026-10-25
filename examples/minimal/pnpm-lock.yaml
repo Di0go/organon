@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@organon/core':
-        specifier: file:../../releases/organon-core-0.1.1.tgz
-        version: file:../../releases/organon-core-0.1.1.tgz(svelte@5.57.2)(vite@8.3.4(@types/node@26.6.5))
+        specifier: file:../../releases/organon-core-0.2.0.tgz
+        version: file:../../releases/organon-core-0.2.0.tgz(svelte@5.57.2)(vite@8.3.4(@types/node@26.6.5))
     devDependencies:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.3.1
@@ -52,9 +52,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@organon/core@file:../../releases/organon-core-0.1.1.tgz':
-    resolution: {integrity: sha512-f7clP/lUBYxmMlR3DlhPVsLEZ69eLuBbJtmDMHhkko8ZUjsCI3msMWIulKpUOaYoYUX7vtbXSsrpPrAH95k2Rg==, tarball: file:../../releases/organon-core-0.1.1.tgz}
-    version: 0.1.1
+  '@organon/core@file:../../releases/organon-core-0.2.0.tgz':
+    resolution: {integrity: sha512-HiV5OsYqDJj9Hn13ylb3LbSqcAjoQRfQfVIGBWSYsFCVi2Xw3iShkAvqY4G+9c2oNLHjJG1dhUI9ktPWq8enSg==, tarball: file:../../releases/organon-core-0.2.0.tgz}
+    version: 0.2.0
     engines: {node: '>=24.2'}
     peerDependencies:
       svelte: ^5.57.1
@@ -477,7 +477,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@organon/core@file:../../releases/organon-core-0.1.1.tgz(svelte@5.57.2)(vite@8.3.4(@types/node@26.6.5))':
+  '@organon/core@file:../../releases/organon-core-0.2.0.tgz(svelte@5.57.2)(vite@8.3.4(@types/node@26.6.5))':
     optionalDependencies:
       svelte: 5.57.2
       vite: 8.3.4(@types/node@26.6.5)
