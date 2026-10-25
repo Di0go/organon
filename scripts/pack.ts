@@ -3,8 +3,11 @@
 // apps' lockfiles hold each tarball's hash, so a tarball rewritten under the same name would fail their install
 // rather than change them silently.
 //
-//   pnpm pack:release            build, test and pack the version in packages/core/package.json
-//   pnpm pack:release --to DIR   pack into DIR instead, overwriting (canary.ts uses it for a throwaway build)
+//   pnpm pack:release            from a clean tree, after `pnpm gates` (the canary included), pack the version in
+//                                packages/core/package.json, so every released tarball is a commit that passed
+//   pnpm pack:release --to DIR   pack into DIR instead, overwriting, after the core's tests (canary.ts uses it)
+//
+// The tarballs are committed: an app's rollback goes back to a pin whose tarball is still here.
 
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -20,8 +23,12 @@ export function pack(outDir: string, { overwrite = false } = {}): string {
   if (existsSync(target) && !overwrite) {
     throw new Error(`${path.relative(ROOT, target)} exists: a released version is never rewritten. Bump packages/core/package.json.`);
   }
+  if (!overwrite) {
+    const dirty = run('git', ['status', '--porcelain'], ROOT).trim();
+    if (dirty) throw new Error(`The tree has changes not committed:\n${dirty}\nA release is packed from a commit.`);
+    run('pnpm', ['gates'], ROOT);
+  } else run('pnpm', ['test'], CORE);
   mkdirSync(outDir, { recursive: true });
-  run('pnpm', ['test'], CORE);
   // prepack builds dist/ first; the tarball lands in outDir under pnpm's own name (organon-core-<version>.tgz).
   const out = run('pnpm', ['pack', '--pack-destination', outDir], CORE).trim().split('\n').at(-1) ?? '';
   const made = path.isAbsolute(out) ? out : path.join(outDir, path.basename(out));

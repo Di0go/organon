@@ -133,9 +133,23 @@ def write(rows, aonly, gonly, ha, hg):
         if counts.get(k):
             w(f'| … {label} | {counts[k]} |')
     w(f'| Só no Aristotle | {len(aonly)} ({na} imagens) |\n| Só no Galen | {len(gonly)} ({ng} imagens) |\n')
-    w(f'Linhas diferentes nos ficheiros comuns, depois de normalizar: **{tc} feitas na cópia**, {ta} no Aristotle depois e {tg} no Galen depois. '
-      'A divergência nasceu quase toda no commit que fez o Galen. Isso diz duas coisas: copiar já é divergir, e a deriva de hoje ainda é pequena '
-      'e datável. É o momento barato para extrair.\n')
+    by = {}
+    for r in rows:
+        if r[4]:
+            t = by.setdefault(r[1], [0, 0, 0])
+            for i in range(3):
+                t[i] += r[4][i]
+    get = lambda k: by.get(k, [0, 0, 0])
+    w(f'Linhas diferentes nos ficheiros comuns, depois de normalizar: {tc} feitas na cópia, {ta} no Aristotle depois e {tg} no Galen depois. '
+      'Por classe, as feitas na cópia são:\n')
+    w('| Classe | na cópia | Aristotle depois | Galen depois |\n|---|---|---|---|')
+    for k in ['X', 'M', 'D', 'R']:
+        v = get(k)
+        w(f'| {NAMES[k]} | {v[0]} | {v[1]} | {v[2]} |')
+    w(f'\nA deriva sem razão é pequena: {get("D")[0] + get("R")[0]} linhas na cópia, entre deriva e renomeação. O grosso é domínio, que tem de '
+      f'divergir, e **misto** ({get("M")[0]} na cópia, {get("M")[2]} no Galen depois): mecanismo comum com domínio entrelaçado. É aí que está o '
+      'custo, porque um ficheiro misto não se pode copiar de um lado para o outro, e uma correcção ao mecanismo tem de ser refeita à mão em cada '
+      'app (a lista abaixo). Extrair um misto quer dizer separar o mecanismo e dar-lhe um ponto de extensão.\n')
     w((HERE / 'inventario-custo.md').read_text())
     w('## Ficheiros nos dois\n')
     w('Linhas: diferentes em bruto / depois de normalizar. Atribuição: na cópia / Aristotle depois / Galen depois.\n')

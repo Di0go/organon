@@ -26,3 +26,17 @@ test('tokens.css gives every accent its colour in light and in dark, and its --o
     );
   }
 });
+
+test('theme-boot.js paints from a legacy key when its own key is empty', async () => {
+  const boot = await readFile(new URL('../src/ui/theme-boot.js', import.meta.url), 'utf8');
+  const store = new Map([['mind-gym.look', '{"mode":"light","accent":"red"}']]);
+  const root = { dataset: {} as Record<string, string> };
+  const run = new Function('document', 'localStorage', boot);
+  run(
+    { documentElement: root, currentScript: { dataset: { key: 'aristotle.look', legacy: 'mind-gym.look', accent: 'blue' } } },
+    {
+      getItem: (k: string) => store.get(k) ?? null,
+    },
+  );
+  assert.deepEqual(root.dataset, { theme: 'light', accent: 'red' });
+});

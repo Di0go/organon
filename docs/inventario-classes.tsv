@@ -2,7 +2,7 @@ AGENTS.md	M	Metade «Working on the app» igual; a outra é o domínio (teaching
 CLAUDE.md	X	Lista as skills de cada app.
 .claude/agents/researcher.md	M	Mesmo método de verificação; as fontes preferidas e o mapa são do domínio.
 .claude/rules/development.md	R	Só nomes, porto do Vite e a excepção da porta do relógio no Galen.
-.claude/settings.json	X	O Galen junta Edit/Write em data/ e dois hooks UserPromptSubmit (check-in, cue word).
+.claude/settings.json	M	As mesmas permissões e o mesmo Stop hook (núcleo); o Galen junta Edit/Write em data/ e dois hooks UserPromptSubmit (app).
 .codex/config.toml	R	Só o nome do servidor MCP.
 CONTRIBUTING.md	R	Só nomes.
 docs/architecture.md	M	Mecanismo comum descrito duas vezes; o domínio diverge.
@@ -13,11 +13,11 @@ docs/interface.md	M	Tokens, tema e layout comuns; páginas do domínio.
 docs/plan.md	X	O plano de cada produto.
 docs/README.md	M	Índice com as mesmas entradas genéricas.
 .gemini/settings.json	R	Só o nome do servidor MCP.
-.github/workflows/ci.yml	X	O Aristotle instala librsvg para o preview_svg.
+.github/workflows/ci.yml	M	O mesmo CI; o Aristotle junta o librsvg para o preview_svg (um passo da app).
 .gitignore	R	Comentários; o Aristotle tem mais linhas de explicação.
 .mcp.json	R	Só nomes.
 opencode.json	R	Só nomes.
-package.json	X	Dependências do domínio (dagre, ts-fsrs no Aristotle; lucide no Galen). O Galen perdeu o playwright-core e com ele o teste no browser.
+package.json	X	Dependências do domínio (dagre, ts-fsrs no Aristotle; lucide no Galen). O playwright-core e o teste no browser entraram no Aristotle depois da cópia (0188e94, 2026-10-24); o Galen nunca os teve.
 README.md	X	Produto.
 scripts/claude-stop-hook.ts	R	Só comentários.
 scripts/dev.ts	R	Porto do Vite; o Galen não copia data/exports no snapshot.

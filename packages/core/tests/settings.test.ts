@@ -5,7 +5,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createSettings, SettingsError } from '../src/server/settings.ts';
@@ -92,4 +92,31 @@ test("The key from the app's environment is used, and the interface only ever se
   assert.equal(view.api.key, 'sk-or…cdef');
   assert.equal(view.api.keyFromEnv, true);
   assert.equal(JSON.stringify(view).includes('0123456789'), false);
+});
+
+test('A settings.json that cannot be read at all (permissions) is said, and never written over', async () => {
+  const file = path.join(await folder(), 'settings.json');
+  await writeFile(file, '{ "agentCommand": "my-claude", "health": { "token": "t" } }');
+  await chmod(file, 0o000);
+  const warnings = new Warnings();
+  const settings = createSettings({ file, warnings });
+  assert.match(warnings.list().join('\n'), /settings\.json could not be read/);
+  await assert.rejects(settings.update({ tutor: 'codex' }), SettingsError);
+  await chmod(file, 0o600);
+  assert.deepEqual(await onDisk(file), { agentCommand: 'my-claude', health: { token: 't' } });
+});
+
+test('Changes made at once are written one after another, and the file ends as memory does', async () => {
+  const file = path.join(await folder(), 'settings.json');
+  const settings = createSettings({ file, warnings: new Warnings() });
+  const results = await Promise.allSettled([
+    settings.update({ tutor: 'codex' }),
+    settings.setExtra('motto', 'x'),
+    settings.update({ api: { model: 'm' } }),
+  ]);
+  assert.deepEqual(
+    results.map((r) => r.status),
+    ['fulfilled', 'fulfilled', 'fulfilled'],
+  );
+  assert.deepEqual(await onDisk(file), { tutor: 'codex', motto: 'x', api: { model: 'm' } });
 });

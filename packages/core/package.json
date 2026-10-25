@@ -1,6 +1,6 @@
 {
   "name": "@organon/core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "The shared core of the saga's apps. This first slice: settings, storage and warnings on the server; design tokens, the look and its picker in the interface.",
   "license": "MIT",
   "type": "module",

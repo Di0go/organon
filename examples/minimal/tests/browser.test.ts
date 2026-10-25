@@ -14,6 +14,8 @@ import { type Running, start } from './helpers.ts';
 const CHROMIUM = [process.env.MINIMAL_TEST_CHROMIUM, '/usr/bin/chromium', chromium.executablePath()].find((p): p is string =>
   Boolean(p && existsSync(p)),
 );
+// In the canary the browser tests must run: a missing Chromium is a failure there, not a skip.
+if (!CHROMIUM && process.env.ORGANON_REQUIRE_CHROMIUM) throw new Error('No Chromium, and ORGANON_REQUIRE_CHROMIUM is set');
 
 let app: Running;
 let browser: Browser | undefined;

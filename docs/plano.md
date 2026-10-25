@@ -12,10 +12,11 @@ ficheiro). A prova de que a forma funciona está neste repositório (`packages/c
 ## Resumo
 
 - **O que se mediu.** Os dois repositórios partilham 119 ficheiros: 19 iguais byte a byte, 33 que só diferem nos
-  nomes, 9 que derivaram sem razão, 35 mistos (mecanismo comum com domínio dentro) e 18 que são de facto do domínio.
-  Das linhas que diferem depois de normalizar os nomes, 9250 foram feitas no próprio commit que copiou o Aristotle,
-  363 no Aristotle depois e 3599 no Galen depois. Copiar já foi divergir. Em sete dias houve uma correcção feita duas
-  vezes, seis feitas só de um lado e um defeito presente nas duas.
+  nomes, 9 que derivaram sem razão, 37 mistos (mecanismo comum com domínio dentro) e 16 que são de facto do domínio.
+  A deriva sem razão é pequena (322 linhas, feitas na cópia). O custo está nos mistos: 4686 linhas de mecanismo
+  entrelaçado com domínio, que não se copiam de um lado para o outro, e por isso cada correcção ao mecanismo se refaz
+  à mão. Desde a cópia: uma correcção feita duas vezes, sete feitas só de um lado (duas delas já na própria cópia), e
+  um defeito presente nas duas.
 - **A fronteira.** Entra no núcleo o que existe, ou vai existir, em duas apps com o mesmo significado e não nomeia
   nada do domínio. O que mistura as duas coisas entra como mecanismo, e o domínio liga-se por um ponto de extensão.
 - **A forma.** Um repositório próprio que publica um pacote, `@organon/core`, em versões imutáveis. Cada app fixa uma
@@ -190,6 +191,18 @@ lá o comando dela (por omissão `pnpm test`; para as apps, `pnpm gates`). Não 
 As *gates* do Organon correm o `canary` contra a app de exemplo. Quando o Argus existir, junta-se à lista em
 `package.json` (`gates`), e o mesmo para cada app que migrar.
 
+Regras do `canary`, porque um `canary` que passa sem testar é pior do que nenhum:
+
+- Uma app que não tem `@organon/core` **falha**, não é saltada. Para testar uma branch de migração: `--ref <branch>`.
+- Os testes de browser da app **têm de correr**: o `canary` põe `ORGANON_REQUIRE_CHROMIUM=1`, e um teste que saltaria
+  por falta de Chromium falha.
+- Nenhuma variável `ARISTOTLE_*`, `GALEN_*`, `ARGUS_*` da shell chega aos testes da cópia.
+- **As *gates* de hoje das apps não arrancam a dev.** Foi a dev que a 0.1.0 partia, com o build verde. Por isso o
+  passo 0 dá a cada app um teste de dev vindo do núcleo, como o `examples/minimal/tests/dev.test.ts`: arranca o Vite
+  da app e abre uma página no Chromium. Até uma app o ter, o `canary` dela não prova que a dev arranca.
+- O `canary` instala com `--no-frozen-lockfile` (o *tarball* é outro, e o lockfile tem de mudar). A instalação
+  congelada, a que a release faz, só se ensaia na app, quando ela muda o pino e corre `pnpm release`.
+
 ## A prova
 
 Num repositório novo, com uma fatia real extraída, consumida como as apps a vão consumir.
@@ -205,24 +218,34 @@ Num repositório novo, com uma fatia real extraída, consumida como as apps a v�
   `Ribbon`), `ui/theme-boot.js` e o plugin `organon()` que o serve.
 
 **Consumido** por `examples/minimal`, que não faz parte do workspace e instala o núcleo de
-`releases/organon-core-0.1.1.tgz`. Com isso, o servidor lê o JS compilado de dentro de `node_modules/.pnpm`.
+`releases/organon-core-0.2.0.tgz`. Com isso, o servidor lê o JS compilado de dentro de `node_modules/.pnpm`.
 
 **Verificado**, com o que se corre:
 
 | O quê | Comando | Resultado |
 |---|---|---|
-| O defeito, antes, no código original | um guião contra `~/Projects/Galen/server/settings.ts`, com `GALEN_SETTINGS` num ficheiro temporário com uma vírgula a mais | `agentCommand` e o token lidos como `undefined`, e o ficheiro reescrito como `{"tutor":"codex"}` |
-| A restrição do Node | `node a.ts` com um `.ts` em `node_modules` | `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`; pelo symlink de fora, funciona |
-| Os testes do núcleo | `pnpm test` (raiz) | 13 passam, 0 falham (settings 7, store 4, ui 2) |
+| O defeito, antes, no código original | `node scripts/proofs/settings-overwrite.ts Galen` (num ficheiro temporário com uma vírgula a mais) | o ficheiro reescrito como `{"tutor":"codex"}`: `LOST: written over` |
+| A restrição do Node | `bash scripts/proofs/node-modules-ts.sh` | `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`; pelo symlink de fora, funciona |
+| Os testes do núcleo | `pnpm test` (raiz) | 16 passam, 0 falham (settings 9, store 4, ui 3) |
 | Os testes mordem | tirar `green` do `theme-boot.js` | o teste da UI falha; reposto, passa |
 | A app de exemplo | `pnpm gates` em `examples/minimal` | svelte-check sem erros; 8 testes passam, 4 no Chromium headless |
 | A dev arranca | `pnpm dev` em `examples/minimal`, depois o Chromium headless em `localhost:5193` | `/api/health` dá `{"ok":true,"instance":"dev"}`; o acento muda para azul (`#6ea8ff`); o *motto* grava-se em `.dev/state/settings.json`; 0 erros na consola |
 | O defeito da dev, apanhado | `tests/dev.test.ts` com a 0.1.0 e com a 0.1.1 | falha com a 0.1.0, passa com a 0.1.1 |
-| O mesmo resultado que o original, com dados reais | o `settings.ts` original de cada app e o do núcleo, cada um numa cópia em `600` do `settings.json` real, com a mesma sequência de três mudanças | `view()` antes e depois, o ficheiro final e o *endpoint* com o mesmo *hash* nas duas apps; as chaves da app (`accent`, `health.token`) preservadas; modo `600` |
+| O mesmo resultado que o original, com dados reais | `node scripts/proofs/settings-differential.ts Aristotle` e `… Galen`: o `settings.ts` original e o do núcleo, cada um numa cópia em `600` do `settings.json` real, com a mesma sequência de três mudanças | `view()` antes e depois, o ficheiro final e o *endpoint* com o mesmo *hash* nas duas apps; as chaves da app (`accent`, `health.token`) preservadas; modo `600` |
 | O `canary` passa | `pnpm canary examples/minimal` | `minimal: PASS` |
-| O `canary` apanha uma quebra | o `view()` sem `agents` (os 13 testes do núcleo continuam a passar) | `minimal: FAIL`, no teste do browser que escolhe o agente |
+| O `canary` apanha uma quebra | o `view()` sem `agents` (os testes do núcleo continuam a passar) |
+| O `canary` não passa no vazio | uma app sem `@organon/core` | `FAIL, not on the core`; 0 de 1 |
+| A red team | um subagente sem a solução, com os métodos de intrusão e auditoria | 10 achados; o que se fez com cada um está em «O que a red team mudou» | `minimal: FAIL`, no teste do browser que escolhe o agente |
 | Tudo junto | `pnpm gates` (raiz) | lint, tipos, testes do núcleo, e o `canary` com as *gates* do exemplo: verde |
 | Nada tocado nas apps | `git status` nas duas, os HEAD, o `mtime` dos `settings.json` | limpo; `391d61c` e `bc5e23c`; os mesmos de antes |
+
+**O que a red team mudou** (0.2.0 e este documento): o `canary` falha quando salta uma app, aceita `--ref`, exige o
+Chromium e não passa as variáveis da app; o `settings` recusa escrever por cima de um ficheiro que não consegue ler,
+põe as escritas em fila (três mudanças ao mesmo tempo perdiam uma) e faz o `chmod` antes do rename; o `theme-boot.js`
+lê as chaves antigas; o `pack:release` só sai de uma árvore limpa e depois das *gates*; os guiões das provas estão
+em `scripts/proofs/`; o critério de `data/` passou a ser medível com os backups automáticos a correr; o resumo deixou
+de dizer que a cópia criou deriva, quando o que criou foram mistos. Ao refazer o teste diferencial depois da fila,
+apanhou-se uma regressão (a ordem das chaves no ficheiro), já corrigida.
 
 **Não testado:** a cópia de release e o systemd de uma app sobre o núcleo (nenhuma app real está nele ainda: é o
 critério do passo 1); um clone público a instalar o núcleo (precisa do GitHub); o Firefox (só o Chromium).
@@ -231,8 +254,10 @@ critério do passo 1); um clone público a instalar o núcleo (precisa do GitHub
 
 Regras que valem em todos os passos:
 
-- **`data/` não se toca.** Os formatos não mudam com o núcleo; cada passo prova-o com o *hash* da árvore de `data/`
-  antes e depois (`git -C data rev-parse HEAD` e `git -C data status --porcelain` vazio). O `settings.json` vive na
+- **`data/` não se toca.** Os formatos não mudam com o núcleo. O `data/` real continua a receber os commits de backup
+  automáticos durante a migração, por isso o critério não é «o mesmo *hash*»; é «a migração não escreveu em `data/`»:
+  todo o trabalho corre na dev (`.dev/data`, cópia por `pnpm dev:snapshot`), e no fim `git -C data log --since=<início>`
+  só mostra commits de backup (`Data: …`) e `git -C data status --porcelain` está vazio. O `settings.json` vive na
   pasta de estado, não em `data/`, e o teste diferencial acima mostra que o núcleo o lê e escreve como as apps.
 - **Uma app de cada vez, numa branch, na instância de dev.** A release só com a palavra do Diogo.
 - **Cada módulo trocado prova-se com um teste diferencial**, como o do `settings`: o original e o do núcleo, sobre uma
@@ -252,6 +277,8 @@ porque são as que já custaram):
    `ContextMenu`) com os pontos de extensão das páginas, mais `Markdown` com `tables.ts` (3), `format` com `asDate` (4)
    e os gráficos genéricos.
 5. `.test`, systemd e release a partir de um `app.json`; os ficheiros de configuração dos agentes gerados a partir dele.
+   Mais o teste de dev (o Vite da app arranca e uma página desenha-se no Chromium) e o arranque de servidor de teste,
+   que cada app passa a correr nas suas *gates*.
 6. O `AGENTS.md` comum, composto, com o teste de sincronia.
 
 **Feito quando:** cada peça tem testes no núcleo; a app de exemplo usa-as todas (uma página, uma ferramenta MCP, o
@@ -266,9 +293,10 @@ README público. É o sítio certo para descobrir o que falta ao núcleo. Propos
 `127.0.0.84` (o `.80` ao `.83` já estão ocupados), portos 4930 (live), 4940 (dev), 4931 (TLS) e 5203 (Vite), todos
 livres hoje.
 
-**Feito quando:** o Argus tem `@organon/core` fixado numa versão exacta; `python3 docs/inventario.py`, alargado ao
-Argus, não lhe encontra nenhum ficheiro de classe «renomeação» em relação ao Galen (ou seja, nenhuma infraestrutura
-copiada); corre na dev, em `https://argus.test` pela cópia de release e pelo systemd, com `pnpm release --rollback`
+**Feito quando:** o Argus tem `@organon/core` fixado numa versão exacta; nenhum ficheiro do Argus é cópia de
+infraestrutura do Galen ou do Aristotle, medido assim: `docs/inventario.py` ganha um modo `--against <repo>` que, para
+cada ficheiro do Argus com o mesmo caminho num dos dois, conta as linhas diferentes depois de normalizar (o `NORM`
+alargado a `Argus`/`ARGUS`), e nenhum pode ficar abaixo de 20% de diferença sem estar na lista de excepções do Argus; corre na dev, em `https://argus.test` pela cópia de release e pelo systemd, com `pnpm release --rollback`
 experimentado; o `canary` do Organon corre as *gates* dele e está verde.
 
 **Primeiro pedido, esboçado** (para uma sessão aberta em `~/Projects/Argus`, que ainda não existe):
@@ -292,10 +320,13 @@ browser). É público, por isso o seu `README` só pode apontar para o núcleo d
 lá, pode migrar numa branch e correr na dev, e não ir para a `main`.
 
 **Feito quando:** cada ficheiro do Galen classificado «renomeação», «deriva» ou «misto» no inventário passou a ser um
-*shim* de uma linha (como `server/store.ts` → `createStore({ dataDir: DATA_DIR, warnings })`) ou a parte de domínio de
-um ponto de extensão; os testes diferenciais de cada módulo trocado estão verdes sobre uma cópia de `data/` (nunca a
-original); `pnpm gates` passa; a release foi feita com a palavra do Diogo, e o rollback experimentado; a árvore de
-`data/` tem o mesmo *hash* antes e depois; o `canary` do Organon corre as *gates* do Galen.
+*shim* de poucas linhas (para o `store`: `export const { loadJson, loadJsonDir, AppendLog } = createStore({ dataDir:
+DATA_DIR, warnings })` mais `export { writeJson, readLog, … } from '@organon/core/server/store'`, para que os 11
+módulos que o importam não mudem; o `AppendLog` ligado mantém o construtor `(warning, written)`) ou a parte de domínio
+de um ponto de extensão; os testes diferenciais de cada módulo trocado, no modelo de
+`scripts/proofs/settings-differential.ts`, estão verdes sobre a cópia em `.dev/data`; `pnpm gates` passa; a release
+foi feita com a palavra do Diogo, e o rollback experimentado; a migração não escreveu em `data/` (regra acima); o
+`canary` do Organon corre as *gates* da branch do Galen (`--ref organon`) e, depois do merge, as da `main`.
 
 **Primeiro pedido, esboçado** (para `~/Projects/Galen`):
 
@@ -303,8 +334,10 @@ original); `pnpm gates` passa; a release foi feita com a palavra do Diogo, e o r
 > que diz, ficheiro a ficheiro, o que é do núcleo). Numa branch `organon`, na dev. Troca, um módulo de cada vez, cada
 > ficheiro «renomeação», «deriva» ou «misto» pelo do `@organon/core` fixado; um *shim* de uma linha onde a app só tem
 > de ligar o núcleo às suas pastas. Para cada módulo, um teste diferencial: o original (de `main`) e o do núcleo, sobre
-> uma cópia de `data/` em `.dev/`, dão o mesmo resultado. O que faltar ao núcleo faz-se no Organon, numa versão nova,
-> com o `canary` verde, e não no Galen. `data/` não se toca: mede o *hash* antes e depois. A release só com a palavra
+> a cópia de `data/` em `.dev/data` (`pnpm dev:snapshot`), dão o mesmo resultado; o modelo é
+> `~/Projects/Organon/scripts/proofs/settings-differential.ts`. O que faltar ao núcleo faz-se no Organon, numa versão nova,
+> com o `canary` verde, e não no Galen. `data/` não se toca: no fim, `git -C data log` desde o início só tem commits
+> de backup. A release só com a palavra
 > do Diogo. Feito quando: o critério do passo 2 do plano, corrido e medido.
 
 ### Passo 3: o Aristotle
@@ -323,8 +356,8 @@ vindo do canal no GitHub.
 > Migra o Aristotle para o Organon, como o Galen foi migrado (`~/Projects/Organon/docs/plano.md`, passo 3, e o que o
 > passo 2 deixou escrito). Branch `organon`, dev. As mudanças à vista vão no README e no `CHANGELOG` do Aristotle
 > antes da release: os gráficos com séries fixas, o acento verde, a página que se recarrega num release novo, os dias
-> certos a oeste de Greenwich. O `storage.ts` sai (as chaves antigas passam a `legacyKeys`). `data/` não se toca: mede
-> o *hash* antes e depois. A release só com a palavra do Diogo, e só depois de o núcleo estar publicado no GitHub
+> certos a oeste de Greenwich. O `storage.ts` sai (as chaves antigas passam a `legacyKeys` e a `data-legacy` no
+> `theme-boot.js`). `data/` não se toca: no fim, `git -C data log` desde o início só tem commits de backup. A release só com a palavra do Diogo, e só depois de o núcleo estar publicado no GitHub
 > (o README público tem de instalar num clone limpo). Feito quando: o critério do passo 3 do plano, corrido e medido.
 
 ## O que se rejeitou, para ninguém voltar a tentar
@@ -338,3 +371,12 @@ vindo do canal no GitHub.
 - **Mudar os nomes em disco do `settings.json`.** Migração de dados sem ganho.
 - **`file:../Organon`.** Parte-se na cópia de release, que vive noutro sítio.
 - **Testar a dev só com o build.** A 0.1.0 construía e não arrancava. O `tests/dev.test.ts` fica para sempre.
+
+## Riscos conhecidos
+
+- **Dependências CommonJS na UI do núcleo.** O plugin `organon()` tira o núcleo da pré-optimização do Vite. Quando a
+  UI do núcleo trouxer `marked`, `DOMPurify` ou `KaTeX`, o Vite pode precisar delas pré-optimizadas e a dev partir
+  com o build verde, que é a mesma classe de defeito da 0.1.0. Ao extrair o `Markdown`: `optimizeDeps.include` dessas
+  dependências no plugin, e o teste de dev da app de exemplo a usar o componente.
+- **`releases/` é a fonte dos *rollbacks*.** Os *tarballs* estão commitados no Organon; apagar um parte o rollback de
+  uma app fixada nele. Com o GitHub, os *releases* de lá passam a ser a cópia de referência.

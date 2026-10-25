@@ -5,6 +5,9 @@
 //
 //   <script src="/theme-boot.js" data-key="galen.look" data-accent="green"></script>
 //
+// data-legacy names keys the look was kept under before, comma separated (Aristotle: "mind-gym.look"), read when the
+// key itself is empty, as theme.svelte.ts's legacyKeys are; theme.svelte.ts then moves them over.
+//
 // The plugin in vite.ts serves it in dev and puts it in the build. The accent ids are copied from shared/accents.ts
 // (a classic script can't import); tests/ui.test.ts fails if the two lists part.
 (() => {
@@ -13,7 +16,9 @@
   const accents = ['green', 'blue', 'red', 'violet', 'graphite'];
   let look = {};
   try {
-    look = JSON.parse(localStorage.getItem(me?.dataset.key ?? 'organon.look') ?? '{}') ?? {};
+    const keys = [me?.dataset.key ?? 'organon.look', ...(me?.dataset.legacy ?? '').split(',').filter(Boolean)];
+    const kept = keys.map((k) => localStorage.getItem(k)).find((v) => v !== null);
+    look = JSON.parse(kept ?? '{}') ?? {};
   } catch {
     // No storage (private window, blocked site data): the defaults.
   }

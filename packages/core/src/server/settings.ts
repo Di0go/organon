@@ -11,11 +11,14 @@
 //   `extra` / `setExtra`; the core's keys can't be written that way.
 // - The accent is read here too, so config.ts no longer reads settings.json a second time.
 // - A settings.json that doesn't parse is set aside and said, not overwritten by the next change (it was, in both
-//   apps: a stray comma lost a hand-set agentCommand or the watch's token).
+//   apps: reproduced on Galen's code, a stray comma loses a hand-set agentCommand or the watch's token). A file that
+//   is there but can't be read at all (permissions) is said, and writes are refused rather than made over it.
+// - Changes made at once are written one after another, each from the state the one before left (in the apps, two at
+//   once shared one temp file, and one could fail or be lost).
 
 import { EventEmitter } from 'node:events';
 import { accessSync, constants, readFileSync, renameSync } from 'node:fs';
-import { chmod } from 'node:fs/promises';
+import { chmod, mkdir, rename, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { type Accent, isAccent } from '../shared/accents.ts';
@@ -33,7 +36,7 @@ import {
   type SettingsView,
   type TutorEngine,
 } from '../shared/agents.ts';
-import { writeFileAtomic } from './store.ts';
+import { WriteQueue } from './store.ts';
 import type { Warnings } from './warnings.ts';
 
 export interface ApiSettings {
@@ -79,6 +82,10 @@ export class Settings {
   private readonly warnings: Warnings;
   private readonly envKey: string | undefined;
   private file: File;
+  /** Why the file must not be written (it exists but could not be read), or undefined. */
+  private locked: string | undefined;
+  /** One write at a time, each from the state the one before left. */
+  private queue = new WriteQueue();
 
   constructor({ file, warnings, apiKey }: SettingsOptions) {
     this.path = file;
@@ -132,10 +139,12 @@ export class Settings {
   /** Sets an app's own key (`undefined` removes it), written like any change and announced the same way. */
   async setExtra(key: string, value: unknown): Promise<void> {
     if (CORE_KEYS.has(key)) throw new SettingsError(`"${key}" belongs to the core's settings: change it with update()`);
-    const next: File = { ...this.file };
-    if (value === undefined) delete next[key];
-    else next[key] = value;
-    await this.save(next);
+    await this.save((file) => {
+      const next: File = { ...file };
+      if (value === undefined) delete next[key];
+      else next[key] = value;
+      return next;
+    });
   }
 
   /** Whether the model API runs on this machine or the local network (a smaller context is assumed for it). */
@@ -209,19 +218,20 @@ export class Settings {
 
   /** Applies what the interface sent, after checking every field; the file is rewritten, readable by this user only. */
   async update(body: SettingsBody): Promise<void> {
-    const next: File = { ...this.file, api: { ...(this.file.api ?? {}) } };
+    // Every field is checked first, so a request with one bad field changes nothing; then applied in turn.
+    const top: Partial<File> = {};
+    const api: Partial<ApiSettings> = {};
     if (body.tutor !== undefined) {
       if (!ENGINES.includes(body.tutor)) throw new SettingsError(`Unknown tutor "${String(body.tutor)}"`);
-      next.tutor = body.tutor;
+      top.tutor = body.tutor;
     }
     if (body.helpers !== undefined) {
       if (body.helpers !== 'api' && body.helpers !== 'claude-code') throw new SettingsError(`Unknown helper "${String(body.helpers)}"`);
-      next.helpers = body.helpers;
+      top.helpers = body.helpers;
     }
     const a = body.api;
     if (a !== undefined) {
       if (typeof a !== 'object' || a === null) throw new SettingsError('api must be an object');
-      const api = next.api as Partial<ApiSettings>;
       if (a.provider !== undefined) {
         if (!PROVIDERS.some((p) => p.id === a.provider)) throw new SettingsError(`Unknown provider "${String(a.provider)}"`);
         api.provider = a.provider;
@@ -239,26 +249,42 @@ export class Settings {
         api.vision = a.vision;
       }
     }
-    await this.save(next);
+    // In the order the apps wrote it (the file, then api, then the rest), so the file reads the same byte for byte.
+    await this.save((file) => ({ ...file, api: { ...(file.api ?? {}), ...api }, ...top }));
   }
 
-  /** Written whole (temp file, then rename) and readable by this user only: it can hold an API key. */
-  private async save(next: File) {
-    const clean = JSON.parse(JSON.stringify(next)) as File;
-    if (clean.api && Object.keys(clean.api).length === 0) delete clean.api;
-    await writeFileAtomic(this.path, `${JSON.stringify(clean, null, 2)}\n`, 0o600);
-    // The mode a new file is given passes through the umask, and a file renamed over keeps none of the old one's.
-    await chmod(this.path, 0o600);
-    this.file = next;
-    this.events.emit('change');
+  /**
+   * Written whole (temp file, then rename) and readable by this user only: it can hold an API key. `change` is applied
+   * to the state the write before left, so changes made at once all land. Refused while the file exists but can't be
+   * read: writing would lose what is in it.
+   */
+  private save(change: (file: File) => File): Promise<void> {
+    if (this.locked) return Promise.reject(new SettingsError(this.locked));
+    return this.queue.run(this.path, async () => {
+      const next = change(this.file);
+      const clean = JSON.parse(JSON.stringify(next)) as File;
+      if (clean.api && Object.keys(clean.api).length === 0) delete clean.api;
+      await mkdir(path.dirname(this.path), { recursive: true });
+      const tmp = `${this.path}.tmp`;
+      await writeFile(tmp, `${JSON.stringify(clean, null, 2)}\n`, { mode: 0o600 });
+      // A temp file left by a crash keeps its old mode, and a new one's passes through the umask: set it before the rename.
+      await chmod(tmp, 0o600);
+      await rename(tmp, this.path);
+      this.file = next;
+      this.events.emit('change');
+    });
   }
 
-  /** settings.json; nothing when it is missing; set aside (renamed, kept) and said when it doesn't parse. */
+  /** settings.json; nothing when it is missing; set aside (renamed, kept) and said when it doesn't parse; said, and left alone, when it can't be read. */
   private read(): File {
     let text: string;
     try {
       text = readFileSync(this.path, 'utf8');
-    } catch {
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === 'ENOENT') return {};
+      // There, but unreadable (permissions, a disk error): the defaults apply, and nothing is written over it.
+      this.locked = `${path.basename(this.path)} could not be read (${(err as Error).message}); fix it before changing settings.`;
+      this.warnings.set(`settings:${this.path}`, this.locked);
       return {};
     }
     try {

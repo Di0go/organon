@@ -20,13 +20,22 @@ Classes: **igual** (byte a byte) · **renomeação** (igual depois de normalizar
 | … iguais byte a byte | 19 |
 | … renomeação | 33 |
 | … deriva | 9 |
-| … misto | 35 |
-| … domínio | 18 |
+| … misto | 37 |
+| … domínio | 16 |
 | … imagens e lockfile (não classificados) | 5 |
 | Só no Aristotle | 110 (38 imagens) |
 | Só no Galen | 80 (10 imagens) |
 
-Linhas diferentes nos ficheiros comuns, depois de normalizar: **9250 feitas na cópia**, 363 no Aristotle depois e 3599 no Galen depois. A divergência nasceu quase toda no commit que fez o Galen. Isso diz duas coisas: copiar já é divergir, e a deriva de hoje ainda é pequena e datável. É o momento barato para extrair.
+Linhas diferentes nos ficheiros comuns, depois de normalizar: 9250 feitas na cópia, 363 no Aristotle depois e 3599 no Galen depois. Por classe, as feitas na cópia são:
+
+| Classe | na cópia | Aristotle depois | Galen depois |
+|---|---|---|---|
+| domínio | 4242 | 190 | 2283 |
+| misto | 4686 | 169 | 1278 |
+| deriva | 150 | 4 | 31 |
+| renomeação | 172 | 0 | 7 |
+
+A deriva sem razão é pequena: 322 linhas na cópia, entre deriva e renomeação. O grosso é domínio, que tem de divergir, e **misto** (4686 na cópia, 1278 no Galen depois): mecanismo comum com domínio entrelaçado. É aí que está o custo, porque um ficheiro misto não se pode copiar de um lado para o outro, e uma correcção ao mecanismo tem de ser refeita à mão em cada app (a lista abaixo). Extrair um misto quer dizer separar o mecanismo e dar-lhe um ponto de extensão.
 
 ## O custo de hoje: correcções feitas duas vezes, ou feitas só num lado
 
@@ -41,8 +50,8 @@ Esta é a lista do que vai para o núcleo primeiro (docs/plano.md, «Ordem da ex
 | 5 | **Só no Galen.** Tokens: `--on-acc` próprio de cada acento em dark, e séries de gráfico fixas e validadas para daltonismo, em vez do acento | Galen, na cópia (`base.css`) | No Aristotle, `--series-1: var(--acc)`. Resolvido no núcleo: `tokens.css` |
 | 6 | **Só no Galen.** Na resposta do chat, o texto depois de uma chamada de ferramenta começa um parágrafo novo | Galen `f1d2435` (`chat.ts`) | Hoje só o Galen dá ferramentas ao chat; vem com elas para o núcleo |
 | 7 | **Só no Galen.** Cartões de hover que mantêm os parágrafos e cabem na largura | Galen `9cdd5cf` (`HoverCard.svelte`) | A parte genérica está misturada com o `EntityCard` |
-| 8 | **Só no Aristotle.** Um teste no browser real (servidor, build, Chromium headless) | Aristotle `0188e94` (`tests/browser.test.ts`, `playwright-core`) | O `package.json` do Galen não tem `playwright-core` |
-| 9 | **Nas duas, por corrigir.** Um `settings.json` que não se lê (uma vírgula a mais) é reescrito por cima na mudança seguinte: perde-se o `agentCommand` posto à mão, ou o token do relógio | `settings.ts` das duas | Reproduzido no código original do Galen (ver docs/plano.md, «A prova»). Corrigido no núcleo, 0.1.0 |
+| 8 | **Só no Aristotle.** Um teste no browser real (servidor, build, Chromium headless), feito depois da cópia | Aristotle `0188e94` (2026-10-24; `tests/browser.test.ts`, `playwright-core`) | O `package.json` do Galen não tem `playwright-core` |
+| 9 | **Nas duas, por corrigir.** Um `settings.json` que não se lê (uma vírgula a mais) é reescrito por cima na mudança seguinte: perde-se o `agentCommand` posto à mão, ou o token do relógio | `settings.ts` das duas | Reproduzido no código original do Galen: `node scripts/proofs/settings-overwrite.ts Galen`. Corrigido no núcleo, 0.1.0 |
 | 10 | **Mesma coisa em quatro sítios por app.** A lista de acentos em `theme.svelte.ts`, `theme-boot.js`, `config.ts` e `base.css`; as duas apps discordam (o verde só no Galen) | as duas | Resolvido no núcleo: `shared/accents.ts`, mais um teste que segura a cópia do `theme-boot.js` |
 | 11 | **Lido duas vezes.** `config.ts` lê o `settings.json` à parte só para o acento, além do `settings.ts` | as duas | Resolvido no núcleo: `settings.accent` |
 
@@ -55,14 +64,14 @@ Linhas: diferentes em bruto / depois de normalizar. Atribuição: na cópia / Ar
 |---|---|---|---|---|
 | `.claude/agents/researcher.md` | misto | 22 / 20 | 20 / 0 / 0 | Mesmo método de verificação; as fontes preferidas e o mapa são do domínio. |
 | `.claude/rules/development.md` | renomeação | 10 / 8 | 6 / 0 / 2 | Só nomes, porto do Vite e a excepção da porta do relógio no Galen. |
-| `.claude/settings.json` | domínio | 25 / 19 | 10 / 0 / 9 | O Galen junta Edit/Write em data/ e dois hooks UserPromptSubmit (check-in, cue word). |
+| `.claude/settings.json` | misto | 25 / 19 | 10 / 0 / 9 | As mesmas permissões e o mesmo Stop hook (núcleo); o Galen junta Edit/Write em data/ e dois hooks UserPromptSubmit (app). |
 | `.codex/config.toml` | renomeação | 4 / 0 | 0 / 0 / 0 | Só o nome do servidor MCP. |
 | `.editorconfig` | igual | 0 | — | |
 | `.gemini/settings.json` | renomeação | 2 / 0 | 0 / 0 / 0 | Só o nome do servidor MCP. |
 | `.githooks/pre-commit` | igual | 0 | — | |
 | `.githooks/pre-push` | igual | 0 | — | |
 | `.github/dependabot.yml` | igual | 0 | — | |
-| `.github/workflows/ci.yml` | domínio | 2 / 2 | 2 / 0 / 0 | O Aristotle instala librsvg para o preview_svg. |
+| `.github/workflows/ci.yml` | misto | 2 / 2 | 2 / 0 / 0 | O mesmo CI; o Aristotle junta o librsvg para o preview_svg (um passo da app). |
 | `.gitignore` | renomeação | 9 / 7 | 7 / 0 / 0 | Comentários; o Aristotle tem mais linhas de explicação. |
 | `.mcp.json` | renomeação | 6 / 0 | 0 / 0 / 0 | Só nomes. |
 | `.nvmrc` | igual | 0 | — | |
@@ -85,7 +94,7 @@ Linhas: diferentes em bruto / depois de normalizar. Atribuição: na cópia / Ar
 | `docs/interface.md` | misto | 142 / 142 | 127 / 6 / 61 | Tokens, tema e layout comuns; páginas do domínio. |
 | `docs/plan.md` | domínio | 182 / 182 | 148 / 14 / 24 | O plano de cada produto. |
 | `opencode.json` | renomeação | 4 / 0 | 0 / 0 / 0 | Só nomes. |
-| `package.json` | domínio | 8 / 6 | 4 / 1 / 1 | Dependências do domínio (dagre, ts-fsrs no Aristotle; lucide no Galen). O Galen perdeu o playwright-core e com ele o teste no browser. |
+| `package.json` | domínio | 8 / 6 | 4 / 1 / 1 | Dependências do domínio (dagre, ts-fsrs no Aristotle; lucide no Galen). O playwright-core e o teste no browser entraram no Aristotle depois da cópia (0188e94, 2026-10-24); o Galen nunca os teve. |
 | `pnpm-lock.yaml` | — | 46 | — | Imagem ou lockfile |
 | `scripts/claude-stop-hook.ts` | renomeação | 6 / 4 | 4 / 0 / 0 | Só comentários. |
 | `scripts/dev.ts` | renomeação | 25 / 13 | 13 / 0 / 0 | Porto do Vite; o Galen não copia data/exports no snapshot. |
