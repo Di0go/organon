@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.dev/
+.example/
+*.tsbuildinfo
+.svelte-check/
+.claude/settings.local.json
+.claude/worktrees/

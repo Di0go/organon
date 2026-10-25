@@ -1,0 +1,74 @@
+{
+  "name": "@organon/core",
+  "version": "0.1.1",
+  "description": "The shared core of the saga's apps. This first slice: settings, storage and warnings on the server; design tokens, the look and its picker in the interface.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=24.2"
+  },
+  "files": [
+    "dist",
+    "src",
+    "CHANGELOG.md"
+  ],
+  "exports": {
+    "./server/settings": {
+      "types": "./dist/server/settings.d.ts",
+      "default": "./dist/server/settings.js"
+    },
+    "./server/store": {
+      "types": "./dist/server/store.d.ts",
+      "default": "./dist/server/store.js"
+    },
+    "./server/warnings": {
+      "types": "./dist/server/warnings.d.ts",
+      "default": "./dist/server/warnings.js"
+    },
+    "./shared/agents": {
+      "types": "./dist/shared/agents.d.ts",
+      "default": "./dist/shared/agents.js"
+    },
+    "./shared/accents": {
+      "types": "./dist/shared/accents.d.ts",
+      "default": "./dist/shared/accents.js"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "default": "./dist/vite.js"
+    },
+    "./ui/theme": "./src/ui/theme.svelte.ts",
+    "./ui/LookPicker.svelte": {
+      "svelte": "./src/ui/LookPicker.svelte",
+      "default": "./src/ui/LookPicker.svelte"
+    },
+    "./ui/tokens.css": "./src/ui/tokens.css",
+    "./ui/theme-boot.js": "./src/ui/theme-boot.js"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test": "node --test 'tests/*.test.ts'",
+    "prepack": "pnpm run build"
+  },
+  "peerDependencies": {
+    "svelte": "^5.57.1",
+    "vite": "^8.3.2"
+  },
+  "peerDependenciesMeta": {
+    "svelte": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/node": "^26.6.4",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.2"
+  }
+}

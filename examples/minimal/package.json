@@ -1,0 +1,30 @@
+{
+  "name": "organon-minimal",
+  "private": true,
+  "type": "module",
+  "description": "The smallest app on the core: what Argus, Galen and Aristotle do with it, at the size of a test.",
+  "engines": {
+    "node": ">=24.2"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.ts",
+    "serve": "node server/index.ts",
+    "build": "vite build",
+    "check": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test": "vite build --logLevel warn && node --test 'tests/*.test.ts'",
+    "gates": "pnpm check && pnpm test"
+  },
+  "packageManager": "pnpm@10.34.5",
+  "dependencies": {
+    "@organon/core": "file:../../releases/organon-core-0.1.1.tgz"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/node": "^26.6.4",
+    "playwright-core": "1.58.2",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.2"
+  }
+}

@@ -1,0 +1,29 @@
+/* What this app adds to the core's tokens: its own page, nothing more. */
+body {
+  margin: 0;
+  background: var(--b0);
+  color: var(--fg);
+  font-family: var(--sans);
+}
+
+.page {
+  max-width: var(--measure);
+  padding: 44px clamp(24px, 4vw, 56px) 96px;
+}
+
+.pick {
+  display: inline-block;
+  padding: 16px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+  background: var(--b1);
+}
+
+.filled {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  background: var(--acc);
+  color: var(--on-acc);
+}

@@ -1,0 +1,95 @@
+AGENTS.md	M	Metade «Working on the app» igual; a outra é o domínio (teaching / keeping his record). O núcleo leva as regras comuns.
+CLAUDE.md	X	Lista as skills de cada app.
+.claude/agents/researcher.md	M	Mesmo método de verificação; as fontes preferidas e o mapa são do domínio.
+.claude/rules/development.md	R	Só nomes, porto do Vite e a excepção da porta do relógio no Galen.
+.claude/settings.json	X	O Galen junta Edit/Write em data/ e dois hooks UserPromptSubmit (check-in, cue word).
+.codex/config.toml	R	Só o nome do servidor MCP.
+CONTRIBUTING.md	R	Só nomes.
+docs/architecture.md	M	Mecanismo comum descrito duas vezes; o domínio diverge.
+docs/data.md	X	Os formatos de data/ são do domínio; a parte do backup é comum.
+docs/development.md	M	Fluxo dev/release/gates igual; os exemplos são do domínio.
+docs/extending.md	M	«Como acrescentar» igual na forma; os pontos de extensão diferem.
+docs/interface.md	M	Tokens, tema e layout comuns; páginas do domínio.
+docs/plan.md	X	O plano de cada produto.
+docs/README.md	M	Índice com as mesmas entradas genéricas.
+.gemini/settings.json	R	Só o nome do servidor MCP.
+.github/workflows/ci.yml	X	O Aristotle instala librsvg para o preview_svg.
+.gitignore	R	Comentários; o Aristotle tem mais linhas de explicação.
+.mcp.json	R	Só nomes.
+opencode.json	R	Só nomes.
+package.json	X	Dependências do domínio (dagre, ts-fsrs no Aristotle; lucide no Galen). O Galen perdeu o playwright-core e com ele o teste no browser.
+README.md	X	Produto.
+scripts/claude-stop-hook.ts	R	Só comentários.
+scripts/dev.ts	R	Porto do Vite; o Galen não copia data/exports no snapshot.
+scripts/docs.ts	M	Gerador comum; o Aristotle junta o kit visual e os explorables.
+scripts/doc-zones.ts	X	Que código obriga a que doc (lista do domínio).
+scripts/fixtures/demo.ts	X	Os dados de demonstração.
+scripts/install-service.sh	R	Igual a menos de nomes.
+scripts/release.ts	D	Só formatação (uma linha partida em três no Aristotle).
+scripts/seed.ts	X	Semeia o domínio.
+scripts/setup-hostname.sh	D	O Galen tirou a limpeza do antigo gym.test (história do Aristotle) e documenta o seu loopback. O resto igual.
+scripts/tls.sh	D	O Aristotle guarda a CA antiga (gym.test) como retired-ca.crt; o Galen apaga-a. História, não domínio.
+server/agents.ts	R	Comentários (tempos de espera do quiz/ask).
+server/backup.ts	M	Igual a menos da mensagem do commit, que resume o domínio (tópicos vs dias). Ponto de extensão: describeChanges.
+server/bridge.ts	R	A mensagem de erro final nomeia collect_answers vs get_today.
+server/chat.ts	M	Mecanismo igual. O Galen junta as ferramentas MCP ao chat (appTools) e corrige o parágrafo depois de uma chamada de ferramenta; o Aristotle não tem nenhum dos dois.
+server/config.ts	M	Portos, pastas e env comuns, com prefixo; caminhos de data/ do domínio. Lê o settings.json uma segunda vez para o acento.
+server/control.ts	R	Igual a menos de nomes.
+server/index.ts	M	Servidor HTTP, estáticos, SSE, WebSocket comuns; rotas do domínio. Só o Galen recarrega a página num release novo (206713f).
+server/llm.ts	R	Comentários.
+server/mcp.ts	M	createMcpServer, method e prompts comuns (~150 linhas); defineTools é o domínio.
+server/method.ts	R	Nome da secção de AGENTS.md e a lista de ajudantes.
+server/oneshot.ts	R	Comentários.
+server/peer.ts	R	Comentário.
+server/search.ts	M	Dobrar acentos e ordenar comuns; as fontes de pesquisa são do domínio.
+server/settings.ts	M	Igual + o token da porta do relógio (Galen). Extraído nesta prova.
+server/slug.ts	R	Comentário.
+server/terminal.ts	R	Comentários.
+server/tutor-api.ts	M	O cliente MCP em processo é comum; as instruções e o tempo de espera do quiz são do domínio.
+server/tutor.ts	R	Gym vs Clinic (o tipo do armazém do domínio).
+server/warnings.ts	R	Comentário. Extraído nesta prova.
+server/web.ts	R	Comentário e user agent.
+shared/tutor.ts	M	Igual + HealthDoorView (Galen) dentro de um tipo comum. Extraído nesta prova (shared/agents).
+shared/types.ts	X	Os tipos do domínio, com o FeedState genérico misturado.
+tests/backup.test.ts	M	O mesmo teste com nomes de ficheiro do domínio.
+tests/mcp.test.ts	X	Ferramentas do domínio; o arranque do servidor de teste é comum.
+tests/tutor.test.ts	M	Quase todo igual na mecânica (247 linhas de diferença foram feitas na cópia).
+tests/unit.test.ts	X	Unidades do domínio.
+ui/index.html	X	O ícone (o logótipo de cada app).
+ui/public/theme-boot.js	D	Lista de acentos e chave antiga mind-gym no Aristotle. Extraído nesta prova.
+ui/src/App.svelte	M	Moldura comum; as páginas registadas são do domínio.
+ui/src/lib/actions.ts	X	O Aristotle tem as acções da aula; o Galen esvaziou-o.
+ui/src/lib/charts/scale.ts	D	O Galen juntou niceRange e dayIndex, genéricos, que o Aristotle não tem.
+ui/src/lib/ChatPanel.svelte	M	Mecanismo igual; as menções (@) e o contexto da página são do domínio. Ponto de extensão: mentions.
+ui/src/lib/Composer.svelte	R	Comentário.
+ui/src/lib/ContextMenu.svelte	M	Copiar e pesquisar comuns; glosar e perguntar são do Aristotle.
+ui/src/lib/drafts.ts	R	Comentários.
+ui/src/lib/feed.svelte.ts	M	Ligação SSE, reconexão e build novo comuns; os registos são do domínio. Só o Galen recarrega num release novo.
+ui/src/lib/focus.svelte.ts	M	Igual + as excepções do Aristotle (asides, gloss).
+ui/src/lib/format.ts	D	O Galen corrigiu as datas "YYYY-MM-DD" (lidas como meia-noite UTC, o dia anterior a oeste); o Aristotle não. sessionStats é do Aristotle.
+ui/src/lib/Home.svelte	X	O painel de cada produto.
+ui/src/lib/HoverCard.svelte	M	Mecanismo igual; os tipos de cartão são do domínio. O Galen corrigiu os parágrafos e a largura dos cartões (9cdd5cf).
+ui/src/lib/Lightbox.svelte	R	Comentários.
+ui/src/lib/Logo.svelte	X	O logótipo.
+ui/src/lib/Markdown.svelte	M	Render comum; [[concept]], kit e explorables são do Aristotle. Só o Aristotle protege os | nas tabelas.
+ui/src/lib/markdown.ts	D	O Aristotle corrigiu os | dentro de código e maths nas tabelas (3516991); o Galen não, e também tem tabelas e código.
+ui/src/lib/maths.svelte.ts	R	Comentário.
+ui/src/lib/Ribbon.svelte	M	Faixa e pop-up Appearance comuns; os lugares são do domínio. O pop-up foi extraído nesta prova (LookPicker).
+ui/src/lib/router.svelte.ts	M	Router por hash comum; as rotas são do domínio. Ponto de extensão: routes.
+ui/src/lib/Search.svelte	M	Paleta comum; para onde leva cada resultado é do domínio.
+ui/src/lib/StatusLine.svelte	M	Moldura comum; o que mostra é do domínio. Ponto de extensão: itens da linha.
+ui/src/lib/TabBar.svelte	M	Separadores comuns; títulos e ícones por rota do domínio.
+ui/src/lib/tabs.svelte.ts	M	Igual + um separador por aula (Aristotle) + a chave antiga mind-gym.
+ui/src/lib/TerminalDrawer.svelte	R	Rótulos e a chave antiga mind-gym (Aristotle).
+ui/src/lib/TerminalView.svelte	R	Igual a menos de nomes.
+ui/src/lib/theme.svelte.ts	D	Acento verde só no Galen; chave antiga no Aristotle. Extraído nesta prova.
+ui/src/lib/TutorConversation.svelte	R	Textos.
+ui/src/lib/tutor.svelte.ts	R	Comentários.
+ui/src/lib/visible.ts	R	Comentário.
+ui/src/main.ts	X	Que CSS do domínio carrega.
+ui/src/pages/Now.svelte	R	Comentário.
+ui/src/pages/Settings.svelte	M	«Quem corre o agente» igual; o Galen junta a porta do relógio. Ponto de extensão: secções de Settings.
+ui/src/styles/base.css	D	Tokens: o Galen tem verde, --on-acc por acento e séries de gráfico fixas (validadas para daltonismo); o Aristotle não. Extraído nesta prova (tokens.css).
+ui/src/styles/prose.css	M	Prosa comum; o kit visual (.kit, .sequence) é do Aristotle.
+ui/src/styles/shell.css	M	Moldura comum; o painel da biblioteca (.rail) é do Aristotle, o chat ao lado do Galen.
+vite.config.ts	R	Porto do Vite.

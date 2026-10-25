@@ -1,0 +1,143 @@
+/* Design tokens shared by every app of the saga: soft greys that step from the page to the panes, one accent, Inter
+   for everything read and JetBrains Mono for code. Dark and light are set on <html> (data-theme), the accent too
+   (data-accent: green, blue, red, violet, graphite; the ids are in shared/accents.ts).
+
+   From Galen's ui/src/styles/base.css, the newer of the two copies: it adds green, gives every accent its own
+   --on-acc in dark mode, and draws chart series in a fixed order validated for colour blindness instead of the
+   accent (Aristotle's --series-1 was the accent, so a chart changed colour with it). An app sets its own default
+   accent (theme.svelte.ts, theme-boot.js) and adds tokens of its own after this file (Aristotle's --files-w for its
+   library pane). Older token names (--paper, --link, --serif…) are aliases the components of both apps still read. */
+
+/* Tokens: colours for each theme and accent */
+:root {
+  /* light */
+  --b0: #ffffff;
+  --b1: #f6f6f6;
+  --b2: #ededed;
+  --hover: #ebebeb;
+  --fg: #222222;
+  --fg-2: #4a4a4a;
+  --muted: #6b6b6b;
+  --faint: #9b9b9b;
+  --rule: #e4e4e4;
+  --rule-strong: #d2d2d2;
+  --solid: #2e8b57;
+  --shaky: #b8860b;
+  --wrong: #c43c3c;
+  /* A heart is red whatever the accent (Aristotle's explorables, Galen's heart rate). */
+  --heart: #e0383f;
+  --code-bg: #f3f3f3;
+  --hl: rgb(245 213 71 / 0.45);
+  --acc: #2b8f55;
+  --shadow: 0 8px 30px -12px rgb(0 0 0 / 0.22), 0 1px 3px rgb(0 0 0 / 0.06);
+  /* what sits on a filled accent: white, except on the light accents of dark mode (green, graphite) */
+  --on-acc: #ffffff;
+  color-scheme: light;
+}
+
+:root[data-accent='green'] {
+  --acc: #2b8f55;
+}
+:root[data-accent='red'] {
+  --acc: #d1343c;
+}
+:root[data-accent='violet'] {
+  --acc: #7c5cdb;
+}
+:root[data-accent='blue'] {
+  --acc: #2f6fde;
+}
+:root[data-accent='graphite'] {
+  --acc: #3c3c3c;
+}
+
+:root[data-theme='dark'] {
+  --b0: #1e1e1e;
+  --b1: #262626;
+  --b2: #2f2f2f;
+  --hover: #303030;
+  --fg: #dcddde;
+  --fg-2: #bdbdbd;
+  --muted: #a0a0a0;
+  --faint: #6f6f6f;
+  --rule: #333333;
+  --rule-strong: #444444;
+  --solid: #5dbb85;
+  --shaky: #d9a441;
+  --wrong: #ef6b6b;
+  --heart: #f0525a;
+  --code-bg: #282828;
+  --hl: rgb(245 213 71 / 0.25);
+  --acc: #74d69c;
+  --on-acc: #0f2a1a;
+  --shadow: 0 10px 34px -12px rgb(0 0 0 / 0.65), 0 1px 3px rgb(0 0 0 / 0.3);
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] {
+  --series-1: #35a866;
+  --series-2: #3987e5;
+  --series-3: #d95926;
+}
+:root[data-theme='dark'][data-accent='green'] {
+  --acc: #74d69c;
+  --on-acc: #0f2a1a;
+}
+:root[data-theme='dark'][data-accent='red'] {
+  --acc: #f2636a;
+  --on-acc: #ffffff;
+}
+:root[data-theme='dark'][data-accent='violet'] {
+  --acc: #9a82ff;
+  --on-acc: #ffffff;
+}
+:root[data-theme='dark'][data-accent='blue'] {
+  --acc: #6ea8ff;
+  --on-acc: #ffffff;
+}
+:root[data-theme='dark'][data-accent='graphite'] {
+  --acc: #e6e6e6;
+  --on-acc: #1e1e1e;
+}
+
+/* Tokens: derived colours, aliases, type and sizes. Set once, so they follow the theme above. */
+:root {
+  --acc-soft: color-mix(in srgb, var(--acc) 13%, transparent);
+  --acc-line: color-mix(in srgb, var(--acc) 35%, transparent);
+
+  /* aliases the components already use */
+  --paper: var(--b1);
+  --ink-2: var(--fg-2);
+  --unknown: var(--faint);
+  --cyan-ink: var(--acc);
+  --cyan-soft: var(--acc-soft);
+  --link: var(--acc);
+  --marker: var(--hl);
+  --marker-solid: var(--acc);
+  --solid-soft: color-mix(in srgb, var(--solid) 14%, transparent);
+  --shaky-soft: color-mix(in srgb, var(--shaky) 15%, transparent);
+  --wrong-soft: color-mix(in srgb, var(--wrong) 13%, transparent);
+  --bg: var(--b0);
+  --line-strong: var(--rule-strong);
+  --accent-soft: var(--acc-soft);
+  --right: var(--solid);
+  --right-soft: var(--solid-soft);
+  /* Chart series, a fixed categorical order validated for colour blindness in both themes (the dataviz skill's
+     validator): green, blue, orange. Not the accent: a chart reads the same whichever accent is picked. */
+  --series-1: #2b8f55;
+  --series-2: #2a78d6;
+  --series-3: #eb6834;
+
+  --sans: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
+  --serif: var(--sans);
+
+  --radius: 6px;
+  --radius-lg: 10px;
+  --lift: var(--shadow);
+  --ribbon-w: 52px;
+  --side-w: 340px;
+  --measure: 58rem;
+  --page-w: 1600px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}

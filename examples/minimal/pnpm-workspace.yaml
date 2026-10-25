@@ -1,0 +1,3 @@
+# Its own project, not part of the core's workspace: it installs the core from releases/, as an app does.
+packages:
+  - .

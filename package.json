@@ -1,0 +1,29 @@
+{
+  "name": "organon",
+  "private": true,
+  "type": "module",
+  "description": "The shared core of the saga's apps (Aristotle, Galen, Argus): the agent bridge, chat, MCP server, settings, storage, release, and the interface's tokens and shell.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.2"
+  },
+  "scripts": {
+    "build": "pnpm -r run build",
+    "check": "tsc -p tsconfig.json && pnpm -r run check",
+    "test": "pnpm -r run test",
+    "lint": "biome check . && prettier --check --cache \"packages/*/src/**/*.svelte\" \"examples/*/ui/src/**/*.svelte\"",
+    "pack:release": "node scripts/pack.ts",
+    "canary": "node scripts/canary.ts",
+    "gates": "pnpm lint && pnpm check && pnpm test && node scripts/canary.ts examples/minimal --run \"pnpm gates\"",
+    "format": "biome check --write . && prettier --write --cache --log-level warn \"packages/*/src/**/*.svelte\" \"examples/*/ui/src/**/*.svelte\""
+  },
+  "packageManager": "pnpm@10.34.5",
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^26.6.4",
+    "typescript": "^6.0.3",
+    "prettier": "^3.9.9",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.57.1"
+  }
+}
