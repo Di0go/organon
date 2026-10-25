@@ -20,7 +20,8 @@ inventory it rests on in [docs/inventario.md](docs/inventario.md).
   the core (today `examples/minimal` and Argus, `../Argus`), which runs the app's own gates on a throwaway copy with this working tree's core.
 - **The apps are read, never changed from here**: not their code, branches, instances or `data/`. An app moves to a
   new version in its own session.
-- `examples/minimal` is not in the workspace on purpose: it installs the core from its GitHub release, as an app does. Its
+- `examples/minimal` is not in the workspace on purpose: it installs the core from a release, as an app does (from
+  `releases/` while the version is not yet a GitHub release, then from its URL). Its
   `pnpm dev` (server 4970, Vite 5193) and `pnpm gates` are what prove a change works.
 - Verify with what runs (tests, the example's dev instance, headless Chromium through `playwright-core`), never with
   the desktop's own browser.
