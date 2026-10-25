@@ -32,7 +32,7 @@ Named after Aristotle's works on logic, the instrument the rest was built with. 
 case it is useful to another.
 
 <p align="center">
-  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/core-dark.svg"><img src="docs/images/core-light.svg" alt="Diagram: @organon/core (server: settings, store, warnings; shared: agents, accents; ui: tokens, theme, look picker; vite: organon()) feeds Aristotle, Galen and Argus, each pinned at one version. A dotted line from the apps back to the core: the canary runs each app's own gates on a version before it leaves." width="876"></picture>
+  <picture><source media="(prefers-color-scheme: dark)" srcset="docs/images/core-dark.svg"><img src="docs/images/core-light.svg" alt="Diagram: @organon/core, one package whose versions are never rewritten, feeds Aristotle, Galen and Argus, each pinned at one version. A dotted line from the apps back to the core: the canary runs each app's own gates on a version before it leaves." width="876"></picture>
 </p>
 
 ## What an app gets

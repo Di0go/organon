@@ -28,6 +28,14 @@ that says nothing keeps English. To use what is new:
   `StackedColumns` (a `format` for the values), `TableView`, and `scale` (`niceTicks`, `niceRange`, `timeTicks`).
   Galen's charts took days; moving to these, its pages pass `dayX(date)` and their own labels.
 - **Fix:** the small screen's bar drew its search glyph filled (a black disc); it is stroked now.
+- **Fix:** `writeFileAtomic` (and so the store's `writeJson`) used one shared `<file>.tmp`: two writes to the same file at
+  once failed with ENOENT, or could leave it half one body, half the other. Each write now has its own temp file, and
+  writes to one file go in turn. Found by Argus's red team (a PUT and the minute's save at once).
+- **Fix:** the search palette's marking escaped the text first and marked after, so typing "lt" marked the inside of
+  `&lt;`. Now it splits first and escapes each piece (`ui/mark`, with a test).
+- `LiveStream` takes `seq`: when the server numbers its events and `reload` returns `{ build, seq }`, the events held
+  during a load that the state already includes are dropped instead of laid over it. `reload` may still return the
+  build alone.
 
 ## 0.4.1
 

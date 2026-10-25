@@ -20,6 +20,7 @@
   //
   // From Galen's ui/src/lib/Search.svelte, with the search and the kinds the app's.
   import { searchBox } from './frame.svelte.ts';
+  import { markWords } from './mark.ts';
   import { words } from './words.ts';
 
   let {
@@ -124,16 +125,7 @@
     }
   }
 
-  /** The words he typed, marked in a piece of text. Escaped first: the text comes from his data. */
-  function mark(text: string): string {
-    const escaped = text.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
-    const found = q
-      .trim()
-      .split(/\s+/)
-      .filter((w) => w.length > 1)
-      .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-    return found.length ? escaped.replace(new RegExp(`(${found.join('|')})`, 'gi'), '<mark>$1</mark>') : escaped;
-  }
+  const mark = (text: string) => markWords(text, q);
 </script>
 
 <svelte:window onkeydown={onWindowKey} />
@@ -293,6 +285,7 @@
 
   .title {
     font-weight: 550;
+    overflow-wrap: anywhere;
   }
 
   .context {

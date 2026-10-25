@@ -6,3 +6,4 @@ dist/
 .svelte-check/
 .claude/settings.local.json
 .claude/worktrees/
+**/tests/.compiled/

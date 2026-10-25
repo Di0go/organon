@@ -76,3 +76,18 @@ test('A file that is there but cannot be read (permissions) is said, and never w
   await chmod(file, 0o600);
   assert.equal(await readFile(file, 'utf8'), '{"notes":["kept"]}');
 });
+
+test('Writes to one file at the same moment all succeed, in turn, and the file is always one of them whole', async () => {
+  const { writeFileAtomic } = await import('../src/server/store.ts');
+  const dir = await mkdtemp(path.join(tmpdir(), 'store-race-'));
+  const file = path.join(dir, 'state.json');
+  const bodies = Array.from({ length: 20 }, (_, i) => `${'x'.repeat(i % 2 ? 50_000 : 10)}${i}\n`);
+  // Found by Argus's red team: two at once failed with ENOENT on the shared .tmp, or left it half one, half the other.
+  const results = await Promise.allSettled(bodies.map((b) => writeFileAtomic(file, b)));
+  assert.deepEqual(
+    results.filter((r) => r.status === 'rejected').map((r) => String((r as PromiseRejectedResult).reason)),
+    [],
+  );
+  assert.equal(await readFile(file, 'utf8'), bodies.at(-1));
+  assert.deepEqual((await readdir(dir)).sort(), ['state.json']);
+});

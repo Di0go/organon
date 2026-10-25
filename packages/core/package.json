@@ -145,6 +145,7 @@
       "svelte": "./src/ui/charts/TableView.svelte",
       "default": "./src/ui/charts/TableView.svelte"
     },
+    "./ui/mark": "./src/ui/mark.ts",
     "./scripts/*": "./scripts/*"
   },
   "scripts": {

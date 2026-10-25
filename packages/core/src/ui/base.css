@@ -64,6 +64,8 @@ h3 {
 
 .page-title {
   margin: 0;
+  /* A name from an app's data can be one long word (a host name, a MAC): it breaks rather than widens the page. */
+  overflow-wrap: anywhere;
   font-size: clamp(1.7rem, 1.3rem + 1.2vw, 2.15rem);
   font-weight: 700;
   line-height: 1.2;

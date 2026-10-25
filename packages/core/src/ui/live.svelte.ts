@@ -6,15 +6,24 @@
 //   const live = new LiveStream<FeedEvent>({ reload: async () => { …fetch the state…; return state.build }, apply });
 //   live.start();
 //
+// When the server numbers its events (`seq`) and says which one the state it hands out already includes, the events
+// held during a load that are not newer than it are dropped: applying them would lay older values over the newer
+// state (found by Argus's red team: hosts sent only when they change stayed stale until their next change).
+//
 // From Galen's feed.svelte.ts, the transport without the records it carries (docs/plano.md, «FeedState»).
 
 export interface LiveOptions<E> {
   /** The stream (/api/events). */
   url?: string;
-  /** Loads the whole state; returns the build /api/state gave, so a new release is noticed. */
-  reload: () => Promise<string | undefined>;
+  /**
+   * Loads the whole state; returns the build /api/state gave, so a new release is noticed, and the number of the last
+   * event the state includes, when the server numbers them.
+   */
+  reload: () => Promise<string | undefined | { build?: string; seq?: number }>;
   /** One event from the stream. */
   apply: (event: E) => void;
+  /** An event's number, when the server numbers them (`seq`). */
+  seq?: (event: E) => number | undefined;
   /** Nothing heard for this long (the server pings every 20 s) and the stream is taken for dead (50 s). */
   stale?: number;
 }
@@ -87,8 +96,11 @@ export class LiveStream<E> {
     this.reloading = true;
     this.again = false;
     this.held = [];
+    let upTo: number | undefined;
     try {
-      const build = await this.options.reload();
+      const got = await this.options.reload();
+      const build = typeof got === 'object' ? got.build : got;
+      upTo = typeof got === 'object' ? got.seq : undefined;
       if (build && this.build && build !== this.build) this.loadNewBuild();
       this.build ??= build;
       this.connected = true;
@@ -99,7 +111,11 @@ export class LiveStream<E> {
       this.reloading = false;
       const held = this.held;
       this.held = [];
-      for (const event of held) this.options.apply(event);
+      for (const event of held) {
+        const n = this.options.seq?.(event);
+        if (upTo !== undefined && n !== undefined && n <= upTo) continue;
+        this.options.apply(event);
+      }
       if (this.again) void this.reload();
     }
   }

@@ -8,7 +8,7 @@
 // DATA_DIR (for the paths in warnings) and of the app's warnings. Both now come in through createStore, so an app's
 // own server/store.ts becomes one line that binds them (docs/plano.md, "Shims").
 
-import { appendFile, mkdir, open, readdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, open, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { Warnings } from './warnings.ts';
 
@@ -34,11 +34,36 @@ export class WriteQueue {
 }
 
 /** Writes `body` to `file` atomically: a temp file next to it, then a rename over it. */
-export async function writeFileAtomic(file: string, body: string, mode?: number) {
-  await mkdir(path.dirname(file), { recursive: true });
-  const tmp = `${file}.tmp`;
-  await writeFile(tmp, body, mode === undefined ? undefined : { mode });
-  await rename(tmp, file);
+/** The write in flight per file: a write waits for the one before it to the same file. */
+const writing = new Map<string, Promise<void>>();
+let tmpCount = 0;
+
+/**
+ * Writes `body` to `file` whole: into a temp file of its own, then renamed over it. Writes to the same file at the
+ * same moment go in turn, each to its own temp file, so none fails and the file is always one of them whole (one
+ * shared ".tmp" failed with ENOENT, or mixed two bodies, when Argus saved twice at once).
+ */
+export function writeFileAtomic(file: string, body: string, mode?: number): Promise<void> {
+  const before = writing.get(file) ?? Promise.resolve();
+  const mine = before
+    .catch(() => {})
+    .then(async () => {
+      await mkdir(path.dirname(file), { recursive: true });
+      const tmp = `${file}.${process.pid}.${++tmpCount}.tmp`;
+      try {
+        await writeFile(tmp, body, mode === undefined ? undefined : { mode });
+        await rename(tmp, file);
+      } catch (err) {
+        await rm(tmp, { force: true });
+        throw err;
+      }
+    });
+  writing.set(file, mine);
+  const done = () => {
+    if (writing.get(file) === mine) writing.delete(file);
+  };
+  mine.then(done, done);
+  return mine;
 }
 
 /**

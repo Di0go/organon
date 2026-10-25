@@ -43,3 +43,12 @@ test('Every word of the frame is in both languages, and the formats follow the l
   assert.equal(plural(1, 'day'), '1 day');
   assert.equal(plural(3, 'day'), '3 days');
 });
+
+test('Search marks the words typed in text that is escaped piece by piece: nothing in it runs, no escape is split', async () => {
+  const { markWords } = await import('../src/ui/mark.ts');
+  assert.equal(markWords('<img src=x onerror=alert(1)>', 'img'), '&lt;<mark>img</mark> src=x onerror=alert(1)&gt;');
+  // Before, "lt" marked the inside of &lt; and showed "&<mark>lt</mark>;".
+  assert.equal(markWords('a<b', 'lt'), 'a&lt;b');
+  assert.equal(markWords('Sala "TV"', 'tv sala'), '<mark>Sala</mark> &quot;<mark>TV</mark>&quot;');
+  assert.equal(markWords('a.b', '.b'), 'a<mark>.b</mark>');
+});
