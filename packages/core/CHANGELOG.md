@@ -3,6 +3,16 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.3.0
+
+**What an app changes:** its writes to data/ go through its store's `writeJson` / `writeFileAtomic` (the `Store` that
+`createStore` returns), not the free functions of the same name. In an app's `server/store.ts` shim, export the
+store's ones.
+
+- **Fix:** a data file that is there but can't be read (permissions, a disk error) was loaded as the fallback and the
+  next write replaced it, losing what it held (the same defect as settings.json's in 0.1.x, in the store). It is now
+  said and remembered, and the store's `writeJson` refuses it until a later load reads it.
+
 ## 0.2.0
 
 Nothing to change in an app.

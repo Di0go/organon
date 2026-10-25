@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 import { createSettings, onPath, SettingsError } from '@organon/core/server/settings';
-import { createStore, isObject, writeJson } from '@organon/core/server/store';
+import { createStore, isObject } from '@organon/core/server/store';
 import { Warnings } from '@organon/core/server/warnings';
 import { API_KEY, DATA_DIR, DEV, PORT, SETTINGS_FILE, UI_DIR } from './config.ts';
 
@@ -54,7 +54,7 @@ async function api(req: http.IncomingMessage, res: http.ServerResponse, route: s
     const { text } = (await body(req)) as { text?: unknown };
     if (typeof text !== 'string' || !text.trim()) return json(res, 400, { error: 'A note needs text' });
     notes = { notes: [...notes.notes, text.trim()] };
-    await writeJson(NOTES_FILE, notes);
+    await store.writeJson(NOTES_FILE, notes);
     return json(res, 200, notes);
   }
   json(res, 404, { error: 'No such route' });

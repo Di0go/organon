@@ -23,10 +23,10 @@ export async function freePort(): Promise<number> {
   });
 }
 
-/** Starts server/index.ts; `stateDir` to start it on a folder made beforehand (a settings.json already there). */
-export async function start(stateDir?: string): Promise<Running> {
+/** Starts server/index.ts; `stateDir` / `dataDir` to start it on folders made beforehand (a settings.json, a record). */
+export async function start(stateDir?: string, dataDirGiven?: string): Promise<Running> {
   const port = await freePort();
-  const dataDir = await mkdtemp(path.join(tmpdir(), 'minimal-data-'));
+  const dataDir = dataDirGiven ?? (await mkdtemp(path.join(tmpdir(), 'minimal-data-')));
   const state = stateDir ?? (await mkdtemp(path.join(tmpdir(), 'minimal-state-')));
   const child: ChildProcess = spawn(process.execPath, ['server/index.ts'], {
     cwd: path.resolve(import.meta.dirname, '..'),

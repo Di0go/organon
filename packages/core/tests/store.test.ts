@@ -62,3 +62,17 @@ test('An append the disk refuses is kept, said, and written with the next one', 
   assert.deepEqual(await readLog(file), [{ n: 1 }, { n: 2 }]);
   assert.deepEqual(warnings.list(), []);
 });
+
+test('A file that is there but cannot be read (permissions) is said, and never written over', async () => {
+  const data = await dataDir();
+  const file = path.join(data, 'notes.json');
+  await writeFile(file, '{"notes":["kept"]}');
+  await chmod(file, 0o000);
+  const warnings = new Warnings();
+  const store = createStore({ dataDir: data, warnings });
+  assert.deepEqual(await store.loadJson(file, isObject, { notes: [] }), { notes: [] });
+  assert.match(warnings.list().join('\n'), /could not be read: notes\.json/);
+  await assert.rejects(store.writeJson(file, { notes: ['new'] }), /could not be read/);
+  await chmod(file, 0o600);
+  assert.equal(await readFile(file, 'utf8'), '{"notes":["kept"]}');
+});

@@ -2,7 +2,7 @@
 
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readdir, readFile, stat, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { put, type Running, start } from './helpers.ts';
@@ -54,4 +54,23 @@ test("The app's own record goes through the core's store: a note is written whol
   });
   assert.equal(res.status, 200);
   assert.deepEqual(JSON.parse(await readFile(path.join(app.dataDir, 'notes.json'), 'utf8')), { notes: ['First'] });
+});
+
+test("A record that is there but can't be read is said, and a write to it is refused, so what it holds is kept", async () => {
+  const data = await mkdtemp(path.join(tmpdir(), 'minimal-data-'));
+  const notes = path.join(data, 'notes.json');
+  await writeFile(notes, '{"notes":["kept"]}');
+  await chmod(notes, 0o000);
+  const app = await start(undefined, data);
+  running.push(app);
+  const state = (await (await fetch(`${app.base}/api/state`)).json()) as { warnings: string[] };
+  assert.match(state.warnings.join('\n'), /could not be read: notes\.json/);
+  const res = await fetch(`${app.base}/api/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"text":"new"}',
+  });
+  assert.equal(res.status, 500);
+  await chmod(notes, 0o600);
+  assert.equal(await readFile(notes, 'utf8'), '{"notes":["kept"]}');
 });

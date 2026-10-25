@@ -41,7 +41,10 @@ export async function writeFileAtomic(file: string, body: string, mode?: number)
   await rename(tmp, file);
 }
 
-/** `value` as pretty JSON, written atomically. */
+/**
+ * `value` as pretty JSON, written atomically. Knows nothing of what was read: an app writes through its store's
+ * writeJson, which refuses a file it found there but could not read.
+ */
 export function writeJson(file: string, value: unknown): Promise<void> {
   return writeFileAtomic(file, `${JSON.stringify(value, null, 2)}\n`);
 }
@@ -143,11 +146,18 @@ export interface StoreOptions {
 /** The parts that report problems, bound to one app's data folder and warnings. */
 export interface Store {
   loadJson<T>(file: string, valid: (v: unknown) => v is T, fallback: T): Promise<T>;
+  /** writeJson, refused for a file this store found there but could not read: writing would lose what it holds. */
+  writeJson(file: string, value: unknown): Promise<void>;
+  /** writeFileAtomic, with the same refusal. */
+  writeFileAtomic(file: string, body: string, mode?: number): Promise<void>;
   loadJsonDir<T>(dir: string, valid: (v: unknown) => v is T): Promise<T[]>;
   AppendLog: new (warning: string, written?: (file: string) => void) => AppendLog;
 }
 
 export function createStore({ dataDir, warnings }: StoreOptions): Store {
+  /** Files that are there but could not be read (permissions, a disk error), with why: never written over. */
+  const locked = new Map<string, string>();
+
   const unreadable = (file: string) =>
     `A data file could not be read and was set aside: ${path.relative(dataDir, file)}. Fix it (and rename it back) or delete it.`;
 
@@ -167,10 +177,14 @@ export function createStore({ dataDir, warnings }: StoreOptions): Store {
       text = await readFile(file, 'utf8');
     } catch (err) {
       if ((err as NodeJS.ErrnoException).code === 'ENOENT') return undefined;
-      // Can't even be read (permissions, a disk error): left where it is, and said.
-      warnings.set(`file:${file}`, `A data file could not be read: ${path.relative(dataDir, file)} (${(err as Error).message}).`);
+      // Can't even be read (permissions, a disk error): left where it is, said, and not written over (writeJson
+      // refuses it) until a later load reads it.
+      const why = `A data file could not be read: ${path.relative(dataDir, file)} (${(err as Error).message}).`;
+      locked.set(path.resolve(file), why);
+      warnings.set(`file:${file}`, why);
       return undefined;
     }
+    if (locked.delete(path.resolve(file))) warnings.set(`file:${file}`, undefined);
     try {
       const value: unknown = JSON.parse(text);
       if (valid(value)) return value;
@@ -205,5 +219,17 @@ export function createStore({ dataDir, warnings }: StoreOptions): Store {
     }
   }
 
-  return { loadJson, loadJsonDir, AppendLog: BoundAppendLog };
+  async function guardedWrite(file: string, body: string, mode?: number) {
+    const why = locked.get(path.resolve(file));
+    if (why) throw new Error(`${why} Not written, so what it holds is kept; fix it and restart.`);
+    await writeFileAtomic(file, body, mode);
+  }
+
+  return {
+    loadJson,
+    loadJsonDir,
+    writeJson: (file, value) => guardedWrite(file, `${JSON.stringify(value, null, 2)}\n`),
+    writeFileAtomic: guardedWrite,
+    AppendLog: BoundAppendLog,
+  };
 }

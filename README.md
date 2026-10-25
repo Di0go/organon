@@ -19,7 +19,7 @@ order is in [docs/plano.md](docs/plano.md).
 An app depends on one exact version:
 
 ```json
-"dependencies": { "@organon/core": "file:~/Projects/Organon/releases/organon-core-0.2.0.tgz" }
+"dependencies": { "@organon/core": "file:~/Projects/Organon/releases/organon-core-0.3.0.tgz" }
 ```
 
 and adds `organon()` to its Vite plugins, `@organon/core/ui/tokens.css` to its styles, and

@@ -115,6 +115,12 @@ porta do relógio e as amostras do Galen, e o hook de check-in.
   um tutor. Mudar o nome seria uma migração de dados sem ganho.
 - **Um defeito encontrado ao extrair** (o `settings.json` ilegível reescrito por cima). Corrige-se no núcleo, com
   teste. As apps recebem-no ao mudar o pino, e não há outra correcção nelas.
+- **A mesma classe de defeito no `store`** (achada na revisão). Um ficheiro de `data/` que existe mas não se lê
+  (permissões, erro de disco) era carregado como o valor por omissão, e a escrita seguinte substituía-o. Isto vale para
+  o `store.ts` das duas apps, que era igual byte a byte. Corrigido na 0.3.0: o `store` lembra-se dele, avisa, e o
+  `writeJson` do `store` recusa escrevê-lo. As escritas para `data/` passam a ir pelo `store`, não pelas funções
+  soltas; o *shim* de cada app exporta as do `store`. A regra fica geral: **o núcleo nunca escreve por cima do que não
+  conseguiu ler.**
 
 ### Decisões que são do Diogo
 
@@ -169,7 +175,7 @@ partia a app em produção.
   do *tarball*, por isso um *tarball* reescrito falharia a instalação em vez de mudar a app em silêncio.
 - **Fixada por app**: versão exacta, sem `^`.
 - **Canal**: enquanto não houver repositório no GitHub, os *tarballs* vivem em `~/Projects/Organon/releases/` e a app
-  aponta para eles por caminho absoluto (`file:~/Projects/Organon/releases/organon-core-0.2.0.tgz`). Isto
+  aponta para eles por caminho absoluto (`file:~/Projects/Organon/releases/organon-core-0.3.0.tgz`). Isto
   funciona na checkout e na cópia de release, mas não num clone público. Com o GitHub, cada versão vira um *release*
   com o *tarball* anexado, e as apps apontam para o URL dele. **Uma app pública só migra depois disso.**
 
@@ -218,7 +224,7 @@ Num repositório novo, com uma fatia real extraída, consumida como as apps a v�
   `Ribbon`), `ui/theme-boot.js` e o plugin `organon()` que o serve.
 
 **Consumido** por `examples/minimal`, que não faz parte do workspace e instala o núcleo de
-`releases/organon-core-0.2.0.tgz`. Com isso, o servidor lê o JS compilado de dentro de `node_modules/.pnpm`.
+`releases/organon-core-0.3.0.tgz`. Com isso, o servidor lê o JS compilado de dentro de `node_modules/.pnpm`.
 
 **Verificado**, com o que se corre:
 
@@ -226,9 +232,10 @@ Num repositório novo, com uma fatia real extraída, consumida como as apps a v�
 |---|---|---|
 | O defeito, antes, no código original | `node scripts/proofs/settings-overwrite.ts Galen` (num ficheiro temporário com uma vírgula a mais) | o ficheiro reescrito como `{"tutor":"codex"}`: `LOST: written over` |
 | A restrição do Node | `bash scripts/proofs/node-modules-ts.sh` | `ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`; pelo symlink de fora, funciona |
-| Os testes do núcleo | `pnpm test` (raiz) | 16 passam, 0 falham (settings 9, store 4, ui 3) |
+| Os testes do núcleo | `pnpm test` (raiz) | 17 passam, 0 falham (settings 9, store 5, ui 3) |
+| O `store` não escreve por cima do que não leu (0.3.0) | o teste de ponta a ponta da app de exemplo: `notes.json` em modo 000, depois `POST /api/notes` | com a 0.2.0, `200` e o ficheiro substituído; com a 0.3.0, `500`, o aviso em `/api/state` e o ficheiro intacto |
 | Os testes mordem | tirar `green` do `theme-boot.js` | o teste da UI falha; reposto, passa |
-| A app de exemplo | `pnpm gates` em `examples/minimal` | svelte-check sem erros; 8 testes passam, 4 no Chromium headless |
+| A app de exemplo | `pnpm gates` em `examples/minimal` | svelte-check sem erros; 9 testes passam, 4 no Chromium headless |
 | A dev arranca | `pnpm dev` em `examples/minimal`, depois o Chromium headless em `localhost:5193` | `/api/health` dá `{"ok":true,"instance":"dev"}`; o acento muda para azul (`#6ea8ff`); o *motto* grava-se em `.dev/state/settings.json`; 0 erros na consola |
 | O defeito da dev, apanhado | `tests/dev.test.ts` com a 0.1.0 e com a 0.1.1 | falha com a 0.1.0, passa com a 0.1.1 |
 | O mesmo resultado que o original, com dados reais | `node scripts/proofs/settings-differential.ts Aristotle` e `… Galen`: o `settings.ts` original e o do núcleo, cada um numa cópia em `600` do `settings.json` real, com a mesma sequência de três mudanças | `view()` antes e depois, o ficheiro final e o *endpoint* com o mesmo *hash* nas duas apps; as chaves da app (`accent`, `health.token`) preservadas; modo `600` |
@@ -320,9 +327,10 @@ browser). É público, por isso o seu `README` só pode apontar para o núcleo d
 lá, pode migrar numa branch e correr na dev, e não ir para a `main`.
 
 **Feito quando:** cada ficheiro do Galen classificado «renomeação», «deriva» ou «misto» no inventário passou a ser um
-*shim* de poucas linhas (para o `store`: `export const { loadJson, loadJsonDir, AppendLog } = createStore({ dataDir:
-DATA_DIR, warnings })` mais `export { writeJson, readLog, … } from '@organon/core/server/store'`, para que os 11
-módulos que o importam não mudem; o `AppendLog` ligado mantém o construtor `(warning, written)`) ou a parte de domínio
+*shim* de poucas linhas (para o `store`: `export const { loadJson, loadJsonDir, writeJson, writeFileAtomic,
+AppendLog } = createStore({ dataDir: DATA_DIR, warnings })` mais `export { readLog, endLastLine, isObject, WriteQueue }
+from '@organon/core/server/store'`, para que os 11 módulos que o importam não mudem e as escritas passem pelo `store`,
+que recusa um ficheiro que não conseguiu ler; o `AppendLog` ligado mantém o construtor `(warning, written)`) ou a parte de domínio
 de um ponto de extensão; os testes diferenciais de cada módulo trocado, no modelo de
 `scripts/proofs/settings-differential.ts`, estão verdes sobre a cópia em `.dev/data`; `pnpm gates` passa; a release
 foi feita com a palavra do Diogo, e o rollback experimentado; a migração não escreveu em `data/` (regra acima); o
