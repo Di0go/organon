@@ -1,0 +1,8 @@
+{
+  "name": "minimal",
+  "title": "Organon minimal",
+  "hostname": "minimal.test",
+  "loopback": "127.0.0.90",
+  "ports": { "live": 4960, "dev": 4970, "tls": 4961, "vite": 5193 },
+  "defaultAccent": "violet"
+}

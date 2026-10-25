@@ -1,7 +1,7 @@
 {
   "name": "@organon/core",
-  "version": "0.3.0",
-  "description": "The shared core of the saga's apps. This first slice: settings, storage and warnings on the server; design tokens, the look and its picker in the interface.",
+  "version": "0.4.0",
+  "description": "The shared core of the saga's apps: the server without its routes, MCP and its bridge, control, release, .test and systemd, settings, storage, entities; design tokens, the look, the hover card.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -10,6 +10,7 @@
   "files": [
     "dist",
     "src",
+    "scripts",
     "CHANGELOG.md"
   ],
   "exports": {
@@ -43,7 +44,52 @@
       "default": "./src/ui/LookPicker.svelte"
     },
     "./ui/tokens.css": "./src/ui/tokens.css",
-    "./ui/theme-boot.js": "./src/ui/theme-boot.js"
+    "./ui/theme-boot.js": "./src/ui/theme-boot.js",
+    "./server/app": {
+      "types": "./dist/server/app.d.ts",
+      "default": "./dist/server/app.js"
+    },
+    "./server/http": {
+      "types": "./dist/server/http.d.ts",
+      "default": "./dist/server/http.js"
+    },
+    "./server/mcp": {
+      "types": "./dist/server/mcp.d.ts",
+      "default": "./dist/server/mcp.js"
+    },
+    "./server/bridge": {
+      "types": "./dist/server/bridge.d.ts",
+      "default": "./dist/server/bridge.js"
+    },
+    "./server/control": {
+      "types": "./dist/server/control.d.ts",
+      "default": "./dist/server/control.js"
+    },
+    "./server/release": {
+      "types": "./dist/server/release.d.ts",
+      "default": "./dist/server/release.js"
+    },
+    "./server/dev": {
+      "types": "./dist/server/dev.d.ts",
+      "default": "./dist/server/dev.js"
+    },
+    "./server/peer": {
+      "types": "./dist/server/peer.d.ts",
+      "default": "./dist/server/peer.js"
+    },
+    "./shared/entities": {
+      "types": "./dist/shared/entities.d.ts",
+      "default": "./dist/shared/entities.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
+    },
+    "./ui/HoverCard.svelte": {
+      "svelte": "./src/ui/HoverCard.svelte",
+      "default": "./src/ui/HoverCard.svelte"
+    },
+    "./scripts/*": "./scripts/*"
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
@@ -70,5 +116,9 @@
     "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",
     "vite": "^8.3.2"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "zod": "^4.6.5"
   }
 }

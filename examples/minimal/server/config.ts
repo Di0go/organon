@@ -1,16 +1,8 @@
-// Where this instance lives: its name, ports and folders, which is all an app tells the core about itself. Like
-// Aristotle's and Galen's config.ts, with MINIMAL_ where they have ARISTOTLE_ and GALEN_.
+// Where this instance lives: the core's defineApp over app.json (name, ports, folders, from MINIMAL_* in the
+// environment), which is all an app tells the core about itself. Galen's and Argus's config.ts start the same way.
 
 import path from 'node:path';
+import { defineApp } from '@organon/core/server/app';
 
 export const ROOT = path.resolve(import.meta.dirname, '..');
-/** `dev` (pnpm dev, the tests) or `live`; each has its own port and folders, so one never touches the other. */
-export const DEV = process.env.MINIMAL_INSTANCE === 'dev';
-export const PORT = Number(process.env.MINIMAL_PORT ?? (DEV ? 4970 : 4960));
-export const DATA_DIR = process.env.MINIMAL_DATA_DIR ?? path.join(ROOT, DEV ? '.dev/data' : 'data');
-export const STATE_DIR = process.env.MINIMAL_STATE_DIR ?? path.join(ROOT, DEV ? '.dev/state' : '.minimal');
-export const SETTINGS_FILE = path.join(STATE_DIR, 'settings.json');
-export const UI_DIR = path.join(ROOT, 'dist/ui');
-export const API_KEY = process.env.MINIMAL_API_KEY;
-/** The app's default accent when the install and the browser chose none (Galen's is green, Aristotle's blue). */
-export const DEFAULT_ACCENT = 'violet';
+export const app = defineApp(ROOT);

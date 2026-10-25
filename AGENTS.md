@@ -17,7 +17,7 @@ inventory it rests on in [docs/inventario.md](docs/inventario.md).
   `releases/` and refuses a version that exists: bump it, and say in `packages/core/CHANGELOG.md` what an app must
   change to move to it. After a push, `pnpm publish:release` makes it a GitHub release, the URL an app pins.
 - **Before a version leaves**, `pnpm gates`: lint, types, the core's tests, and `pnpm canary` against every app on
-  the core (today `examples/minimal`), which runs the app's own gates on a throwaway copy with this working tree's core.
+  the core (today `examples/minimal` and Argus, `../Argus`), which runs the app's own gates on a throwaway copy with this working tree's core.
 - **The apps are read, never changed from here**: not their code, branches, instances or `data/`. An app moves to a
   new version in its own session.
 - `examples/minimal` is not in the workspace on purpose: it installs the core from its GitHub release, as an app does. Its

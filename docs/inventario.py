@@ -5,6 +5,11 @@
 #
 #   python3 docs/inventario.py            writes docs/inventario.md
 #   python3 docs/inventario.py --check    exits 1 if a file in both apps has no class yet (new drift to judge)
+#   python3 docs/inventario.py --against ~/Projects/Argus
+#                                         an app born on the core: for each of its files with the same path in
+#                                         Aristotle or Galen, the share of lines that differ after normalising the
+#                                         names (Argus/ARGUS too); below 20% is a copy of their infrastructure, and
+#                                         exits 1 unless the app lists it in organon-exceptions.tsv (path, reason)
 
 import re, subprocess, sys, tempfile
 from pathlib import Path
@@ -22,6 +27,55 @@ NORM = [
     (r'\b(4747|4840)\b', 'PORT'), (r'\b(4757|4850)\b', 'DEVPORT'), (r'\b(4748|4841)\b', 'TLSPORT'), (r'127\.0\.0\.8[23]', 'LOOP'),
     (r'\b(the learner|the athlete)\b', 'SUBJ'), (r'\b(learner|athlete)\b', 'SUBJ'), (r'\b(tutor|agent)\b', 'AGENT'),
 ]
+
+
+# An app born on the core is normalised the same way: its name, its ports and its loopback address are markers too.
+NORM_NEW = [
+    (r'Argus', 'APP'), (r'argus', 'app'), (r'ARGUS', 'APP'),
+    (r'\b4930\b', 'PORT'), (r'\b4940\b', 'DEVPORT'), (r'\b4931\b', 'TLSPORT'), (r'127\.0\.0\.84', 'LOOP'),
+]
+COPY_BELOW = 0.20
+
+
+def against(app):
+    """Each file of `app` that has the same path in Aristotle or Galen, and how much of it differs from theirs."""
+    app = Path(app).expanduser().resolve()
+    exceptions = {}
+    exc = app / 'organon-exceptions.tsv'
+    if exc.exists():
+        for line in exc.read_text().splitlines():
+            if line.strip() and not line.startswith('#'):
+                f, why = line.split('\t', 1)
+                exceptions[f] = why
+    mine = sorted(set(git(app, 'ls-files').split()))
+    rows, copies = [], []
+    for f in mine:
+        if SKIP.search(f):
+            continue
+        ours = read(app / f)
+        a = norm(ours)
+        for pat, rep in NORM_NEW:
+            a = [re.sub(pat, rep, l) for l in a]
+        best = None
+        for repo in (A, G):
+            theirs = read(repo / f)
+            if not theirs:
+                continue
+            b = norm(theirs)
+            share = changed(a, b) / max(1, len(a) + len(b))
+            if best is None or share < best[1]:
+                best = (repo.name, share)
+        if best is None:
+            continue
+        status = 'excepção' if f in exceptions else ('CÓPIA' if best[1] < COPY_BELOW else 'próprio')
+        if status == 'CÓPIA':
+            copies.append(f)
+        rows.append((f, best[0], best[1], status, exceptions.get(f, '')))
+    print(f'{app.name}: {len(mine)} files, {len(rows)} with the same path in Aristotle or Galen (difference below {COPY_BELOW:.0%} = copy)')
+    for f, other, share, status, why in rows:
+        print(f'  {status:9} {share:6.1%}  {f}  (closest: {other}){"  — " + why if why else ""}')
+    print('No copies of their infrastructure.' if not copies else f'{len(copies)} copied: ' + ', '.join(copies))
+    sys.exit(1 if copies else 0)
 
 
 def git(repo, *args):
@@ -177,5 +231,7 @@ def write(rows, aonly, gonly, ha, hg):
     print(f'docs/inventario.md: {len(rows)} in both, {len(aonly)} only in Aristotle, {len(gonly)} only in Galen; {counts.get("?", 0)} to classify')
 
 
-if __name__ == '__main__':
+if __name__ == '__main__' and '--against' in sys.argv:
+    against(sys.argv[sys.argv.index('--against') + 1])
+elif __name__ == '__main__':
     main()

@@ -38,7 +38,7 @@ before(async () => {
 after(async () => {
   await browser?.close();
   vite.kill();
-  app.stop();
+  void app.stop();
 });
 
 test('pnpm dev: Vite serves the page from source and it draws, with no error', { skip: !CHROMIUM }, async () => {

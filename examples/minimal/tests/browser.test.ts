@@ -27,7 +27,7 @@ before(async () => {
 
 after(async () => {
   await browser?.close();
-  app.stop();
+  void app.stop();
 });
 
 const token = (name: string) => `getComputedStyle(document.documentElement).getPropertyValue('${name}').trim()`;
@@ -44,6 +44,16 @@ test("The page is drawn with the core's tokens, in the app's default accent, dar
   // A filled accent carries the core's --on-acc for that accent in dark mode.
   const filled = await page.getByTestId('filled').evaluate((el) => getComputedStyle(el).color);
   assert.equal(filled, 'rgb(255, 255, 255)');
+  await page.close();
+});
+
+test("The core's hover card: pointing at something with a tip shows it", { skip: !CHROMIUM }, async () => {
+  const page = await browser!.newPage();
+  await page.goto(app.base);
+  await page.getByTestId('filled').hover();
+  const card = page.getByRole('tooltip');
+  await card.waitFor();
+  assert.match(await card.innerText(), /The accent\s+Filled with the accent/);
   await page.close();
 });
 
@@ -80,6 +90,6 @@ test("The install's accent, set in settings.json, is the page's until the browse
     assert.deepEqual(JSON.parse(await readFile(path.join(state, 'settings.json'), 'utf8')), { accent: 'red', tutor: 'codex' });
     await page.close();
   } finally {
-    fresh.stop();
+    void fresh.stop();
   }
 });

@@ -1,6 +1,7 @@
 <script lang="ts">
   // One page: the app's own motto and notes (its domain), the core's look picker, and who runs the agent (the core's
   // settings), changed through the API as Settings does in the apps.
+  import HoverCard from '@organon/core/ui/HoverCard.svelte';
   import LookPicker from '@organon/core/ui/LookPicker.svelte';
   import { theme } from './theme.svelte.ts';
 
@@ -30,7 +31,9 @@
 <main class="page">
   <h1>{view?.motto || 'Organon'}</h1>
   <div class="pick"><LookPicker look={theme} /></div>
-  <p class="filled" data-testid="filled">On the accent</p>
+  <p class="filled" data-testid="filled" data-tip="Filled with the accent, written in its --on-acc." data-tip-title="The accent">
+    On the accent
+  </p>
   {#if view}
     <p>
       <label
@@ -47,3 +50,5 @@
   {/if}
   {#if problem}<p role="alert">{problem}</p>{/if}
 </main>
+
+<HoverCard />

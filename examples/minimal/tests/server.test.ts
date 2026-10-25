@@ -9,7 +9,7 @@ import { put, type Running, start } from './helpers.ts';
 
 const running: Running[] = [];
 after(() => {
-  for (const r of running) r.stop();
+  for (const r of running) void r.stop();
 });
 
 test('Settings: the core changes who runs the agent, the app its own motto, one file readable only by this user', async () => {
@@ -73,4 +73,25 @@ test("A record that is there but can't be read is said, and a write to it is ref
   assert.equal(res.status, 500);
   await chmod(notes, 0o600);
   assert.equal(await readFile(notes, 'utf8'), '{"notes":["kept"]}');
+});
+
+test("The app's own tool, through the core's MCP endpoint: get_notes reads what the store wrote", async () => {
+  const app = await start();
+  running.push(app);
+  await fetch(`${app.base}/api/notes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"text":"Seen"}' });
+  const res = await fetch(`${app.base}/mcp`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json, text/event-stream' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/call', params: { name: 'get_notes', arguments: {} } }),
+  });
+  const line = (await res.text()).split('\n').find((l) => l.startsWith('data:')) ?? '';
+  const result = JSON.parse(line.slice(5)) as { result: { content: { text: string }[] } };
+  assert.deepEqual(JSON.parse(result.result.content[0]?.text ?? ''), { motto: '', notes: ['Seen'] });
+});
+
+test("The core's checks stand in front of the app's routes: another site's request is refused", async () => {
+  const app = await start();
+  running.push(app);
+  const res = await fetch(`${app.base}/api/settings`, { headers: { Origin: 'http://evil.example' } });
+  assert.equal(res.status, 403);
 });

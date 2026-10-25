@@ -8,5 +8,10 @@
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["src/server/**/*.ts", "src/shared/**/*.ts", "src/vite.ts"]
+  "include": [
+    "src/server/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/vite.ts",
+    "src/testing.ts"
+  ]
 }

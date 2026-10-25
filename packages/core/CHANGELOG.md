@@ -3,6 +3,36 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.4.0
+
+**What an app changes:** nothing to keep working. To use what is new, an app adds an `app.json` at its root (name,
+title, hostname, loopback, ports, defaultAccent) and moves onto the pieces below; Argus is the first app built on
+them, `examples/minimal` uses them too.
+
+What Argus needed to be born, extracted from Galen (docs/plano.md, step 0) rather than copied:
+
+- `server/app`: `defineApp(root)` over `app.json`: instance, ports, folders, the exact Hosts and Origins, TLS, pid
+  and log files, the service and the release copy, `<PREFIX>_*` overrides. Galen's and Aristotle's config.ts.
+- `server/http`: `serve(app, { api, mcp, state, warnings, accent, stop })`: the server without its routes. Loopback
+  and ::1, HTTPS once tls.sh made a certificate, other users' connections refused (`server/peer`), Host, Origin and
+  Sec-Fetch-Site checked, the CSP and the other headers, a JSON body required, the built interface with the
+  install's accent, `/api/health`, `/api/state` with the build (the page reloads on a new release), the pid file.
+  `ApiError`, `json`, `send`, `readJson`.
+- `server/mcp`: `defineTools`, `createMcpHandler` (stateless, one McpServer per request, the drawer's core tools
+  always loaded), `checkTools` (Claude Code's 2048-character limit), `z` (the SDK's own zod). New dependencies:
+  `@modelcontextprotocol/sdk`, `zod`.
+- `server/bridge` (`runBridge`), `server/control` (`createControl`, `controlCli`: `pnpm app`), `server/release`
+  (`release`: gates, the worktree copy, frozen install, the service, rollback), `server/dev` (`runDev`).
+- `scripts/`: `tls.sh`, `setup-hostname.sh` (with `--print`, which needs no root), `install-service.sh`, all reading
+  `app.json`; an app runs them as `node_modules/@organon/core/scripts/<name>.sh <app root>`.
+- `shared/entities`: `EntityGraph` (find by key, id, name or other name, case and accents aside; neighbours, `linked`
+  with both directions joined, `twoSteps`; search with a snippet), `keyOf`, `fold`. From Galen's entities and search,
+  with the kinds left to the app.
+- `ui/HoverCard.svelte`: one hover card for the app: `data-tip`, or `data-tip-entity` drawn by the app's snippet.
+- `testing`: `startServer` (the app's real server on throwaway folders, its own `<PREFIX>_*` kept out),
+  `freePort`, `findChromium` (a failure under `ORGANON_REQUIRE_CHROMIUM`).
+- `organon({ root })`: given the app's root, Vite's port and its proxy (`/api`, `/mcp`) come from `app.json`.
+
 ## 0.3.0
 
 **What an app changes:** its writes to data/ go through its store's `writeJson` / `writeFileAtomic` (the `Store` that
