@@ -174,16 +174,19 @@ partia a app em produção.
 - **Imutáveis**: `pnpm pack:release` recusa reescrever uma versão que já existe. O lockfile de cada app guarda o *hash*
   do *tarball*, por isso um *tarball* reescrito falharia a instalação em vez de mudar a app em silêncio.
 - **Fixada por app**: versão exacta, sem `^`.
-- **Canal**: enquanto não houver repositório no GitHub, os *tarballs* vivem em `~/Projects/Organon/releases/` e a app
-  aponta para eles por caminho absoluto (`file:~/Projects/Organon/releases/organon-core-0.3.0.tgz`). Isto
-  funciona na checkout e na cópia de release, mas não num clone público. Com o GitHub, cada versão vira um *release*
-  com o *tarball* anexado, e as apps apontam para o URL dele. **Uma app pública só migra depois disso.**
+- **Canal**: o GitHub, em `github.com/Di0go/organon` (público, MIT). Cada versão é um *release* `v<versão>` no commit
+  que acrescentou o *tarball*, com ele anexado e a secção do `CHANGELOG.md` como notas, e a app aponta para o URL dele
+  (`https://github.com/Di0go/organon/releases/download/v0.3.0/organon-core-0.3.0.tgz`). Funciona num clone limpo, sem
+  nada desta máquina, e por isso serve as apps públicas. `pnpm publish:release` (`scripts/publish.ts`) faz o *release*
+  depois do `pack:release` e do push, recusa uma versão que já lá está, e descarrega o ficheiro servido para confirmar
+  que é o de `releases/`. Os *tarballs* continuam também commitados em `releases/`: o `canary` e o *rollback* de uma app
+  não dependem da rede.
 
 ### Como uma correcção chega às apps
 
 1. Faz-se no núcleo, com o teste que a reproduz a falhar primeiro.
 2. `pnpm gates` no Organon: lint, tipos, os testes do núcleo, e o `canary` de cada app que já está no núcleo.
-3. Versão nova (*patch* ou *minor*), entrada no `CHANGELOG.md`, `pnpm pack:release`.
+3. Versão nova (*patch* ou *minor*), entrada no `CHANGELOG.md`, `pnpm pack:release`, push, `pnpm publish:release`.
 4. Em cada app, quando ela quiser: muda o pino, `pnpm install`, `pnpm gates`, `pnpm release`. Se correr mal,
   `pnpm release --rollback` volta ao pino anterior, que continua em `releases/`.
 

@@ -15,7 +15,7 @@ inventory it rests on in [docs/inventario.md](docs/inventario.md).
 - **Upstream first.** A fix to shared code is made here, with a test that fails first, never only in an app.
 - **A version is never rewritten.** `pnpm pack:release` packs `packages/core` at its `package.json` version into
   `releases/` and refuses a version that exists: bump it, and say in `packages/core/CHANGELOG.md` what an app must
-  change to move to it.
+  change to move to it. After a push, `pnpm publish:release` makes it a GitHub release, the URL an app pins.
 - **Before a version leaves**, `pnpm gates`: lint, types, the core's tests, and `pnpm canary` against every app on
   the core (today `examples/minimal`), which runs the app's own gates on a throwaway copy with this working tree's core.
 - **The apps are read, never changed from here**: not their code, branches, instances or `data/`. An app moves to a

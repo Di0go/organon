@@ -46,4 +46,5 @@ if (import.meta.main) {
   const file = pack(outDir, { overwrite: to !== -1 });
   const sha = createHash('sha512').update(readFileSync(file)).digest('base64');
   console.log(`${path.relative(process.cwd(), file)}\nintegrity sha512-${sha}`);
+  if (to === -1) console.log('Next: commit it, push, then `pnpm publish:release` (scripts/publish.ts).');
 }

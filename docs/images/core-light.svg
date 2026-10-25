@@ -1,0 +1,36 @@
+<!-- The core and its apps, as the README draws it: each app pins one version, and the canary runs every app's gates before a version leaves. Light variant; core-dark.svg is the same drawing in dark colours. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="876" height="356" viewBox="0 0 876 356" role="img" aria-labelledby="title" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title id="title">@organon/core feeds Aristotle, Galen and Argus, each pinned at one exact version; before a version leaves, the canary runs each app's own gates against it.</title>
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0.8 L10,5 L0,9.2 z" fill="#8f8f8f"/>
+    </marker>
+    <marker id="head-acc" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,0.8 L10,5 L0,9.2 z" fill="#a8742a"/>
+    </marker>
+  </defs>
+  <rect x="8" y="40" width="304" height="216" rx="10" fill="#a8742a" fill-opacity="0.06" stroke="#a8742a" stroke-opacity="0.55" stroke-width="1.25"/>
+  <text x="32" y="76" font-size="16.5" font-weight="600" fill="#1f1f1f">@organon/core</text>
+  <text x="32" y="98" font-size="13.5" fill="#5e5e5e">one package, versions never rewritten</text>
+  <g font-size="13.5" fill="#1f1f1f">
+    <text x="32" y="138"><tspan font-weight="600">server</tspan><tspan fill="#5e5e5e">  settings · store · warnings</tspan></text>
+    <text x="32" y="166"><tspan font-weight="600">shared</tspan><tspan fill="#5e5e5e">  agents · accents</tspan></text>
+    <text x="32" y="194"><tspan font-weight="600">ui</tspan><tspan fill="#5e5e5e">  tokens · theme · look picker</tspan></text>
+    <text x="32" y="222"><tspan font-weight="600">vite</tspan><tspan fill="#5e5e5e">  organon()</tspan></text>
+  </g>
+  <rect x="596" y="8" width="272" height="72" rx="10" fill="#000000" fill-opacity="0.025" stroke="#000000" stroke-opacity="0.18" stroke-width="1.25"/>
+  <text x="620" y="38" font-size="16.5" font-weight="600" fill="#1f1f1f">Aristotle</text>
+  <text x="620" y="61" font-size="13.5" fill="#5e5e5e">a tutor that makes you think</text>
+  <rect x="596" y="112" width="272" height="72" rx="10" fill="#000000" fill-opacity="0.025" stroke="#000000" stroke-opacity="0.18" stroke-width="1.25"/>
+  <text x="620" y="142" font-size="16.5" font-weight="600" fill="#1f1f1f">Galen</text>
+  <text x="620" y="165" font-size="13.5" fill="#5e5e5e">a doctor and a coach</text>
+  <rect x="596" y="216" width="272" height="72" rx="10" fill="#000000" fill-opacity="0.025" stroke="#000000" stroke-opacity="0.18" stroke-width="1.25"/>
+  <text x="620" y="246" font-size="16.5" font-weight="600" fill="#1f1f1f">Argus</text>
+  <text x="620" y="269" font-size="13.5" fill="#5e5e5e">a readable network spy</text>
+  <path d="M312,124 C454,124 454,44 595,44" fill="none" stroke="#8f8f8f" stroke-width="1.5" marker-end="url(#head)"/>
+  <path d="M312,148 H595" fill="none" stroke="#8f8f8f" stroke-width="1.5" marker-end="url(#head)"/>
+  <path d="M312,172 C454,172 454,252 595,252" fill="none" stroke="#8f8f8f" stroke-width="1.5" marker-end="url(#head)"/>
+  <text x="454" y="140" text-anchor="middle" font-size="13.5" fill="#5e5e5e">each pins one version</text>
+  <path d="M732,288 V302 Q732,320 714,320 H178 Q160,320 160,302 V257" fill="none" stroke="#a8742a" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="0.5 6" marker-end="url(#head-acc)"/>
+  <text x="446" y="344" text-anchor="middle" font-size="13.5" font-style="italic" fill="#a8742a">canary: each app’s own gates run on a version before it leaves</text>
+</svg>
