@@ -3,23 +3,24 @@
   // The app places it (a pop-up, a settings page); the look is the app's one theme (createTheme).
   import { ACCENTS } from '../shared/accents.ts';
   import type { Look } from './theme.svelte.ts';
+  import { words } from './words.ts';
 
   let { look }: { look: Look } = $props();
 </script>
 
-<p class="pop-h">Appearance</p>
-<div class="seg" role="group" aria-label="Mode">
-  <button class:on={look.value === 'light'} onclick={() => look.set('light', look.accent)}>Light</button>
-  <button class:on={look.value === 'dark'} onclick={() => look.set('dark', look.accent)}>Dark</button>
+<p class="pop-h">{words.appearance}</p>
+<div class="seg" role="group" aria-label={words.mode}>
+  <button class:on={look.value === 'light'} onclick={() => look.set('light', look.accent)}>{words.light}</button>
+  <button class:on={look.value === 'dark'} onclick={() => look.set('dark', look.accent)}>{words.dark}</button>
 </div>
-<p class="pop-h">Accent</p>
-<div class="swatches" role="group" aria-label="Accent">
+<p class="pop-h">{words.accent}</p>
+<div class="swatches" role="group" aria-label={words.accent}>
   {#each ACCENTS as a (a.id)}
     <button
       class:on={look.accent === a.id}
       onclick={() => look.set(look.value, a.id)}
-      title={a.label}
-      aria-label={a.label}
+      title={words.accentNames[a.id] ?? a.label}
+      aria-label={words.accentNames[a.id] ?? a.label}
       aria-pressed={look.accent === a.id}
     >
       <span style:background={a.swatch}></span>

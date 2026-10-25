@@ -1,7 +1,7 @@
 {
   "name": "@organon/core",
-  "version": "0.4.1",
-  "description": "The shared core of the saga's apps: the server without its routes, MCP and its bridge, control, release, .test and systemd, settings, storage, entities; design tokens, the look, the hover card.",
+  "version": "0.5.0",
+  "description": "The shared core of the saga's apps: the server without its routes, live events, MCP and its bridge, control, release, .test and systemd, settings, storage, entities; design tokens, fonts, the look, the frame (ribbon, tabs, status line, search, menus, hover card), formats and charts.",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -89,6 +89,62 @@
       "svelte": "./src/ui/HoverCard.svelte",
       "default": "./src/ui/HoverCard.svelte"
     },
+    "./server/events": {
+      "types": "./dist/server/events.d.ts",
+      "default": "./dist/server/events.js"
+    },
+    "./ui/base.css": "./src/ui/base.css",
+    "./ui/shell.css": "./src/ui/shell.css",
+    "./ui/dash.css": "./src/ui/dash.css",
+    "./ui/charts.css": "./src/ui/charts.css",
+    "./ui/fonts.css": "./src/ui/fonts.css",
+    "./ui/live": "./src/ui/live.svelte.ts",
+    "./ui/router": "./src/ui/router.svelte.ts",
+    "./ui/tabs": "./src/ui/tabs.svelte.ts",
+    "./ui/frame": "./src/ui/frame.svelte.ts",
+    "./ui/words": "./src/ui/words.ts",
+    "./ui/format": "./src/ui/format.ts",
+    "./ui/charts/scale": "./src/ui/charts/scale.ts",
+    "./ui/Frame.svelte": {
+      "svelte": "./src/ui/Frame.svelte",
+      "default": "./src/ui/Frame.svelte"
+    },
+    "./ui/Ribbon.svelte": {
+      "svelte": "./src/ui/Ribbon.svelte",
+      "default": "./src/ui/Ribbon.svelte"
+    },
+    "./ui/TabBar.svelte": {
+      "svelte": "./src/ui/TabBar.svelte",
+      "default": "./src/ui/TabBar.svelte"
+    },
+    "./ui/StatusLine.svelte": {
+      "svelte": "./src/ui/StatusLine.svelte",
+      "default": "./src/ui/StatusLine.svelte"
+    },
+    "./ui/Search.svelte": {
+      "svelte": "./src/ui/Search.svelte",
+      "default": "./src/ui/Search.svelte"
+    },
+    "./ui/ContextMenu.svelte": {
+      "svelte": "./src/ui/ContextMenu.svelte",
+      "default": "./src/ui/ContextMenu.svelte"
+    },
+    "./ui/charts/LineChart.svelte": {
+      "svelte": "./src/ui/charts/LineChart.svelte",
+      "default": "./src/ui/charts/LineChart.svelte"
+    },
+    "./ui/charts/Columns.svelte": {
+      "svelte": "./src/ui/charts/Columns.svelte",
+      "default": "./src/ui/charts/Columns.svelte"
+    },
+    "./ui/charts/StackedColumns.svelte": {
+      "svelte": "./src/ui/charts/StackedColumns.svelte",
+      "default": "./src/ui/charts/StackedColumns.svelte"
+    },
+    "./ui/charts/TableView.svelte": {
+      "svelte": "./src/ui/charts/TableView.svelte",
+      "default": "./src/ui/charts/TableView.svelte"
+    },
     "./scripts/*": "./scripts/*"
   },
   "scripts": {
@@ -119,6 +175,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/jetbrains-mono": "^5.3.0"
   }
 }

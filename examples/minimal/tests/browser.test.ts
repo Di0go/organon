@@ -93,3 +93,56 @@ test("The install's accent, set in settings.json, is the page's until the browse
     void fresh.stop();
   }
 });
+
+test("The core's frame: the ribbon's places, a tab per page, the status line, all live over the core's stream", {
+  skip: !CHROMIUM,
+}, async () => {
+  const page = await browser!.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  await page.goto(`${app.base}/#/notes`);
+  await page.getByRole('navigation', { name: 'Places' }).getByRole('link', { name: 'Notes' }).waitFor();
+  assert.equal(await page.getByRole('tab', { name: 'Notes' }).getAttribute('aria-selected'), 'true');
+  // A note added from outside the page (another tab, the agent) shows up without a reload.
+  await page.locator('.statusline .st i.on').waitFor();
+  const res = await fetch(`${app.base}/api/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: 'Bring the long rope' }),
+  });
+  assert.equal(res.status, 200);
+  await page.getByRole('list', { name: 'Notes' }).getByText('Bring the long rope').waitFor();
+  assert.match(await page.locator('.statusline').innerText(), /\d+ notes/);
+  assert.equal(await page.locator('.chart svg').count(), 1);
+  // Ctrl+K searches, Enter opens, and the page gets its own tab beside the others.
+  await page.keyboard.press('Control+k');
+  await page.getByRole('dialog', { name: 'Search' }).getByRole('textbox').fill('rope');
+  await page.getByRole('option', { name: /Bring the long rope/ }).waitFor();
+  await page.keyboard.press('Enter');
+  await page.getByRole('heading', { name: 'Bring the long rope' }).waitFor();
+  assert.equal(await page.getByRole('tab').count(), 2);
+  // Right-click on a note: the app's own item in the core's menu.
+  await page.getByRole('list', { name: 'Notes' }).getByText('Bring the long rope').click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Open the note' }).waitFor();
+  await page.keyboard.press('Escape');
+  // Closing the open tab goes to its neighbour.
+  await page.getByRole('tab', { selected: true }).hover();
+  await page.getByRole('button', { name: /Close Bring the long rope/ }).click();
+  await page.getByRole('tab', { name: 'Notes', selected: true }).waitFor();
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test('On a phone, the ribbon slides in from the menu button and closes on a place', { skip: !CHROMIUM }, async () => {
+  const page = await browser!.newPage({ viewport: { width: 390, height: 844 } });
+  await page.goto(app.base);
+  const ribbon = page.locator('.ribbon-col');
+  assert.ok((await ribbon.boundingBox())!.x < 0, 'hidden off the left edge');
+  await page.getByRole('button', { name: 'Open the menu' }).click();
+  await page.waitForFunction(() => document.querySelector('.ribbon-col')!.getBoundingClientRect().x >= 0);
+  await page.getByRole('navigation', { name: 'Places' }).getByRole('link', { name: 'Notes' }).click();
+  await page.waitForFunction(() => document.querySelector('.ribbon-col')!.getBoundingClientRect().x < 0);
+  assert.equal(await page.evaluate(() => location.hash), '#/notes');
+  await page.close();
+});

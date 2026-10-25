@@ -1,0 +1,378 @@
+/* The saga's base: reset, type, the few buttons, keys and inputs, the shared pieces (tags, sheets, legends, empty
+   states, skeletons), motion and scrollbars. Load after tokens.css and before the app's own styles.
+
+   From Galen's ui/src/styles/base.css (the tokens are in tokens.css), without what is one app's (Aristotle's status
+   dots and mastery bar, Galen's session rows). The app's page code (App.svelte) sets html.show-scroll while the pointer
+   is over the stage: Frame.svelte does it. */
+
+/* Reset and base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--b0);
+  color: var(--fg);
+  font: 400 15px / 1.6 var(--sans);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--acc);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--acc-line);
+  text-underline-offset: 0.2em;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--acc);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--acc-soft);
+}
+
+/* Type */
+h1,
+h2,
+h3 {
+  font-family: var(--sans);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+.page-title {
+  margin: 0;
+  font-size: clamp(1.7rem, 1.3rem + 1.2vw, 2.15rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+}
+
+.page-lede {
+  margin: 10px 0 0;
+  max-width: 46rem;
+  font-size: 1.02rem;
+  line-height: 1.6;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.section-title {
+  margin: 0 0 14px;
+  font-size: 1.08rem;
+  font-weight: 650;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* A short label for an identifier or a state. Plain text, quietly tinted. */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 7px;
+  font: 500 0.75rem / 1.7 var(--sans);
+  color: var(--muted);
+  background: var(--b2);
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.tag.solid {
+  color: var(--solid);
+  background: var(--solid-soft);
+}
+
+.tag.shaky {
+  color: var(--shaky);
+  background: var(--shaky-soft);
+}
+
+.tag.cyan {
+  color: var(--acc);
+  background: var(--acc-soft);
+}
+
+/* Buttons: one filled (the next thing to do), the rest quiet. */
+.primary,
+.ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 6px 14px;
+  font: 500 0.9rem / 1.2 var(--sans);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s,
+    filter 0.15s;
+}
+
+.primary {
+  border: 1px solid var(--acc);
+  background: var(--acc);
+  color: var(--on-acc);
+}
+
+.primary:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.primary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ghost {
+  border: 1px solid var(--rule-strong);
+  background: transparent;
+  color: var(--fg);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.primary.small,
+.ghost.small {
+  min-height: 28px;
+  padding: 3px 10px;
+  font-size: 0.82rem;
+}
+
+.primary kbd {
+  color: inherit;
+  background: rgb(255 255 255 / 0.16);
+  border-color: transparent;
+}
+
+.link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--acc);
+  font: inherit;
+  cursor: pointer;
+}
+
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--hover);
+  color: var(--fg);
+}
+
+/* Keys and inputs */
+kbd {
+  display: inline-block;
+  padding: 0 0.45em;
+  font: 500 0.72rem / 1.6 var(--mono);
+  color: var(--muted);
+  background: var(--b2);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+textarea,
+.field {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--b0);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  line-height: 1.55;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+textarea {
+  resize: vertical;
+}
+
+textarea:focus,
+.field:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--acc-soft);
+}
+
+.error {
+  color: var(--wrong);
+  font-size: 0.9rem;
+}
+
+/* Shared pieces */
+
+/* A card: content set apart from the page. Used sparingly. */
+.sheet {
+  background: var(--b0);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.graph-paper {
+  background: var(--b0);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.empty-state {
+  max-width: 34rem;
+  padding: 40px 0;
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+  font-size: 1.3rem;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* Motion: off when the system asks for less. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbars stay hidden until the pointer is over their pane. The page's own scrollbar belongs to <html>,
+   so it follows the pointer over the stage (App sets .show-scroll); inner panes follow :hover. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+html,
+html:hover {
+  scrollbar-color: transparent transparent;
+}
+
+html.show-scroll,
+html.show-scroll:hover {
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+/* Skeletons: the shape of what is loading, in quiet bars, so the page doesn't fill in with a jump. */
+.sk {
+  display: block;
+  height: 0.7em;
+  border-radius: 4px;
+  background: var(--b2);
+}
+
+.sk.tall {
+  height: 1.1em;
+}
+
+.sk.w30 {
+  width: 30%;
+}
+
+.sk.w40 {
+  width: 40%;
+}
+
+.sk.w45 {
+  width: 45%;
+}
+
+.sk.w60 {
+  width: 60%;
+}
+
+.sk.w75 {
+  width: 75%;
+}
+
+.sk.w90 {
+  width: 90%;
+}

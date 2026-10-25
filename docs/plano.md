@@ -321,8 +321,12 @@ configuração de ferramentas como excepção, com a razão, em `organon-excepti
 Falta: a release e o *rollback* (precisam da palavra do Diogo, e do núcleo publicado no GitHub, pelo ponto acima).
 Entrou no núcleo, puxado por ele: o servidor, o MCP e a ponte, o controlo, a release, a dev, os guiões de `.test` e
 systemd a partir do `app.json`, o grafo de entidades com a procura (do Galen), o HoverCard e as ajudas de teste.
-Ficaram por extrair, por o Argus ainda não precisar: o *drawer*, o chat, a moldura da UI (`Ribbon`, `TabBar`…), o
-SSE, e os ficheiros de configuração dos agentes gerados do `app.json`.
+Na 0.5.0, puxados pelo tempo real e pela UI do Argus: o SSE (`server/events`, `ui/live`), a moldura (`Frame`,
+`Ribbon`, `TabBar`, `StatusLine`, `Search`, `ContextMenu`, `router`, `tabs`), os estilos (`fonts`, `base`, `shell`,
+`dash`, `charts`), as palavras em inglês e português, o `format` com `asDate`, e os gráficos genéricos (o x passou a
+ser um número, já não um dia). Ficaram por extrair, por o Argus ainda não precisar: o *drawer*, o chat, o `Markdown`
+com `tables.ts`, o `Lightbox`, e os ficheiros de configuração dos agentes gerados do `app.json`. O `Markdown` está em
+duas apps e entra pela regra, mas sem consumidor que o teste fica para a migração do Galen, que o usa.
 
 **Primeiro pedido, esboçado** (para uma sessão aberta em `~/Projects/Argus`, que ainda não existe):
 

@@ -1,0 +1,6 @@
+/* The saga's type: Inter for everything read, JetBrains Mono for code, keys and addresses (variable, with italics),
+   from the packages, so no page asks a font server for anything. Import once, first, in the app's main.ts. */
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/inter/wght-italic.css';
+@import '@fontsource-variable/jetbrains-mono/wght.css';
+@import '@fontsource-variable/jetbrains-mono/wght-italic.css';

@@ -3,6 +3,32 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.5.0
+
+**What an app changes:** nothing to keep working. `LookPicker` now speaks the app's language (`setWords`); an app
+that says nothing keeps English. To use what is new:
+
+- `server/events`: `EventHub`, Server-Sent Events for every open page (`events.stream(req, res)` in a route,
+  `events.send(event)`). Retry in 2 s, a ping every 20 s; a page that stops reading (its unread data past 4 MB) is let
+  go rather than buffered without end. From Galen's `streamEvents`.
+- `ui/live`: `LiveStream`, the page's end: opens the stream, opens it again when it dies or goes quiet, reloads the
+  whole state on every connect (events meanwhile held and applied after), and loads a new release's interface. Plus
+  `getJson` and `sendJson`. From Galen's `feed.svelte.ts`, the transport without the records.
+- The frame, from Galen: `ui/Frame.svelte` (ribbon column, small screen's bar and slide-in ribbon, stage, status
+  column, focus mode), `ui/Ribbon.svelte` (the app's `places`, search, focus, the look), `ui/TabBar.svelte` with
+  `ui/tabs` (`createTabs`), `ui/StatusLine.svelte` (dev badge, warnings, the app's items), `ui/Search.svelte` (the
+  app's `search` and `kinds`), `ui/ContextMenu.svelte` (copy and search on selected text, the app's `actions` on
+  anything else), `ui/router` (`createRouter`, `hashParts`, `hashQuery`), `ui/frame` (`searchBox`, `focus`).
+- Styles, from Galen: `ui/fonts.css` (Inter and JetBrains Mono from the packages, now core dependencies),
+  `ui/base.css`, `ui/shell.css` (without the drawer, which comes with it), `ui/dash.css` (panels, tiles, bands, lists,
+  records), `ui/charts.css`.
+- `ui/words`: the frame's words in English or Portuguese (`setWords('pt')`), and `ui/format` (dates, times, plurals,
+  numbers in that language; `asDate` reads "YYYY-MM-DD" as local noon).
+- `ui/charts`: `LineChart` (x is any number: a day's noon from `dayX`, a moment in ms; a shaded area), `Columns`,
+  `StackedColumns` (a `format` for the values), `TableView`, and `scale` (`niceTicks`, `niceRange`, `timeTicks`).
+  Galen's charts took days; moving to these, its pages pass `dayX(date)` and their own labels.
+- **Fix:** the small screen's bar drew its search glyph filled (a black disc); it is stroked now.
+
 ## 0.4.1
 
 Nothing to change in an app.

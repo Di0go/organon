@@ -23,8 +23,9 @@
 ---
 
 **Organon is the core that [Aristotle](https://github.com/Di0go/aristotle), Galen and Argus are built on.** What the
-three share is written once, here: settings, storage, the design tokens and the look, and in time the agent bridge,
-chat and the MCP server. A fix made here reaches every app, and no app moves until it chooses to: each pins one exact
+three share is written once, here: the server and its checks, live events, the MCP server and its bridge, settings,
+storage, release, the design tokens and the look, and the frame every page sits in (the ribbon, the tabs, the status
+line, search, menus and charts), and in time the agent's drawer and chat. A fix made here reaches every app, and no app moves until it chooses to: each pins one exact
 version, and before a version leaves, every app's own checks run against it.
 
 Named after Aristotle's works on logic, the instrument the rest was built with. Built for one person, and open in
@@ -41,20 +42,25 @@ source, served by the `organon()` Vite plugin.
 
 | | Import | What it does |
 |---|---|---|
+| **Server** | `server/app`, `server/http` | `defineApp` over an `app.json`, and the server without its routes: loopback only, this user only, exact Host and Origin, the CSP, the built interface, health and state. |
+| **Live events** | `server/events`, `ui/live` | One Server-Sent Events stream every open page listens on; the page's end reloads everything on reconnect and picks up a new release. |
+| **MCP** | `server/mcp`, `server/bridge` | The app's tools for its agent, over HTTP and through a stdio bridge. |
 | **Settings** | `server/settings` | The app's `settings.json`, with its own keys beside the core's. A file that can't be read or parsed is set aside and said, never written over. |
-| **Storage** | `server/store` | JSON files and append-only logs in the app's `data/`, written atomically and in turn. |
-| **Warnings** | `server/warnings` | What went wrong on the server, kept for the interface to show. |
-| **Agents, accents** | `shared/agents`, `shared/accents` | Who runs the app's agent (Claude Code, another agent CLI, or a model behind an OpenAI-compatible API), and the accents an app can wear. |
-| **Tokens** | `ui/tokens.css` | Colour, type, radii and widths, light and dark, with chart series that stay apart for colour-blind eyes. |
-| **The look** | `ui/theme`, `ui/LookPicker.svelte` | Light, dark or system, and the accent, set before the first paint. |
-| **Vite** | `vite` | `organon()`: serves the look's boot script and keeps the core's source out of pre-bundling. |
+| **Storage** | `server/store` | JSON files and append-only logs in the app's `data/`, written atomically and in turn, never over a file it could not read. |
+| **Release** | `server/release`, `server/control`, `scripts/` | A clean name on `.test` with TLS, a systemd service, a release copy, and rollback. |
+| **Entities** | `shared/entities` | An app's things as a graph: find by any name, walk the links, search. |
+| **The frame** | `ui/Frame`, `ui/Ribbon`, `ui/TabBar`, `ui/StatusLine`, `ui/Search`, `ui/ContextMenu`, `ui/HoverCard` | The page's surroundings, with the app's places, tab titles, search, menu items and cards plugged in. |
+| **Styles and words** | `ui/fonts.css`, `ui/tokens.css`, `ui/base.css`, `ui/shell.css`, `ui/dash.css`, `ui/words` | Inter and JetBrains Mono, colour and type in light and dark, the shared pieces, in English or Portuguese. |
+| **Charts** | `ui/charts/*` | Lines, columns, stacked columns, and every chart as a table, in series that stay apart for colour-blind eyes. |
+| **The look** | `ui/theme`, `ui/LookPicker.svelte` | Light or dark, and the accent, set before the first paint. |
+| **Vite** | `vite` | `organon()`: serves the look's boot script, the dev port and proxy from `app.json`, and keeps the core's source out of pre-bundling. |
 
 ## Use it
 
 Pin a release by its URL. The lockfile keeps the tarball's hash, so a version can never change under an app.
 
 ```sh
-pnpm add https://github.com/Di0go/organon/releases/download/v0.3.0/organon-core-0.3.0.tgz
+pnpm add https://github.com/Di0go/organon/releases/download/v0.5.0/organon-core-0.5.0.tgz
 ```
 
 Then wire it in, as [`examples/minimal`](examples/minimal) does:
@@ -98,9 +104,9 @@ the order the apps move in, is in [docs/plano.md](docs/plano.md) (in Portuguese)
 | App | What it is | On the core |
 |---|---|---|
 | [Aristotle](https://github.com/Di0go/aristotle) | A tutor that makes you think, then makes you do | Third, after Galen |
-| Galen | A doctor and a coach | Second |
-| Argus | A readable network spy, on `tshark` | First, born on it |
-| [`examples/minimal`](examples/minimal) | The smallest app on the core, at the size of a test | 0.3.0, in every gate |
+| [Galen](https://github.com/Di0go/galen) | A doctor and a coach | Second |
+| [Argus](https://github.com/Di0go/argus) | A readable network spy, on `tshark`, live | First, born on it |
+| [`examples/minimal`](examples/minimal) | The smallest app on the core, at the size of a test | Every version, in every gate |
 
 ## License
 

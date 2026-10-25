@@ -1,0 +1,561 @@
+/* The dashboards' pieces: panels of short live lists, stat tiles, states said in a word and a dot, tables of
+   records, bands (a section with a plain heading), lists, pills, chips, stats and figures. One component's own look
+   stays in its <style>.
+
+   From Galen's ui/src/styles/dash.css, without the chat beside a page and the check-in's scale. */
+
+/* Shared: the small label above a heading, and the spinner */
+.kicker {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--faint);
+}
+
+.spinner {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--rule-strong);
+  border-top-color: var(--acc);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Panels: a grid of short lists, each with its way onwards at the foot */
+.panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 16px 18px 14px;
+  background: var(--b1);
+  border-radius: var(--radius-lg);
+}
+
+.panel.wide {
+  grid-column: 1 / -1;
+}
+
+.panel-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.panel-h span,
+.panel-h a {
+  font-size: 0.8rem;
+  font-weight: 400;
+  color: var(--faint);
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  color: var(--fg-2);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+a.item:hover {
+  text-decoration: none;
+}
+
+a.item:hover .item-t {
+  color: var(--fg);
+}
+
+.item-t {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item-t.wrap {
+  white-space: normal;
+}
+
+.item-m {
+  flex: none;
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--faint);
+  line-height: 1.5;
+}
+
+.panel-foot {
+  align-self: flex-start;
+  margin-top: auto;
+  padding-top: 10px;
+  font-size: 0.84rem;
+  color: var(--acc);
+}
+
+/* Stat tiles: a label, the value, and what it is measured against */
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin: 0 0 28px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  background: var(--b1);
+  border-radius: var(--radius-lg);
+}
+
+.tile-l {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.tile-v {
+  font-size: 1.6rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--fg);
+}
+
+.tile-v small {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.tile-s {
+  font-size: 0.76rem;
+  color: var(--faint);
+}
+
+/* Where a value sits: said in words beside a small mark, never by colour alone */
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  color: var(--fg-2);
+}
+
+.state::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.state.good::before {
+  background: var(--solid);
+}
+
+.state.warn::before {
+  background: var(--shaky);
+}
+
+.state.bad::before {
+  background: var(--wrong);
+}
+
+/* A section of charts, one card each */
+.chart-section {
+  margin-bottom: 36px;
+}
+
+.chart-section .sheet {
+  padding: 16px 18px 12px;
+}
+
+.chart-note {
+  margin: 0 0 10px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  max-width: 46rem;
+}
+
+/* Tables of records */
+.records {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.records th {
+  padding: 6px 12px 6px 0;
+  border-bottom: 1px solid var(--rule-strong);
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.records td {
+  padding: 7px 12px 7px 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+.records td.num,
+.records th.num {
+  text-align: right;
+}
+
+.records-wrap {
+  overflow-x: auto;
+}
+
+/* Quiet sections with a plain heading, lists without rules whose state is a small dot and a coloured word, numbers
+   in the body face, and panels on a soft grey. */
+
+/* A section of a page: a plain heading, what it is in a few words on the right */
+.band {
+  min-width: 0;
+  margin: 0 0 48px;
+}
+
+.band-h {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin: 0 0 12px;
+}
+
+.band-h h2 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 650;
+}
+
+.band-h .aside,
+.band-h > a {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.band-h > a {
+  color: var(--acc);
+}
+
+/* A section as a panel: Today's soft-grey blocks */
+.band.panel {
+  margin: 0;
+  padding: 16px 18px 14px;
+  background: var(--b1);
+  border-radius: var(--radius-lg);
+}
+
+.band.panel .band-h {
+  margin-bottom: 8px;
+}
+
+.band.panel .band-h h2 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.band.panel .band-h .aside,
+.band.panel .band-h > a {
+  font-size: 0.8rem;
+}
+
+/* A list in a card, on the inner pages (as Aristotle's groups of fading concepts) */
+.sheet.list-sheet {
+  padding: 10px 22px 12px;
+}
+
+/* Sections side by side */
+.bands {
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr));
+  gap: 16px 28px;
+}
+
+.bands.panels-grid {
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.bands.three {
+  --cols: 3;
+}
+
+@media (max-width: 1000px) {
+  .bands.three {
+    --cols: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .bands,
+  .bands.three {
+    --cols: 1;
+  }
+}
+
+/* Lists: one thing per line, no rules; a small dot says its state, a quiet word on the right says more */
+.recs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rec {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  color: var(--fg-2);
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.rec::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+  transform: translateY(-1px);
+}
+
+.rec.good::before {
+  background: var(--solid);
+}
+
+.rec.warn::before {
+  background: var(--shaky);
+}
+
+.rec.bad::before {
+  background: var(--wrong);
+}
+
+.rec.acc::before {
+  background: var(--acc);
+}
+
+.rec.plain::before {
+  display: none;
+}
+
+.rec.empty {
+  font-size: 0.86rem;
+  color: var(--faint);
+}
+
+a.rec:hover {
+  text-decoration: none;
+}
+
+a.rec:hover .rec-t {
+  color: var(--fg);
+}
+
+.rec-t {
+  flex: 1;
+  min-width: 0;
+}
+
+.rec-m {
+  flex: none;
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.rec-d {
+  flex: none;
+  width: 6.5em;
+  font-size: 0.8rem;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A state in a word, in its colour (as Aristotle says right, fading, wrong) */
+.pill {
+  display: inline-block;
+  font-size: 0.78rem;
+  color: var(--faint);
+  white-space: nowrap;
+}
+
+.pill.good {
+  color: var(--solid);
+}
+
+.pill.warn {
+  color: var(--shaky);
+}
+
+.pill.bad {
+  color: var(--wrong);
+}
+
+.pill.acc {
+  color: var(--acc);
+}
+
+/* A person or a thing to go to */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  font: 500 0.78rem / 1.7 var(--sans);
+  color: var(--muted);
+  background: var(--b2);
+  border-radius: 4px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+a.chip:hover {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+button.chip {
+  border: 0;
+  cursor: pointer;
+}
+
+.chip.on {
+  color: var(--acc);
+  background: var(--acc-soft);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Numbers in a panel: the value, what it counts under it */
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin: 2px 0 12px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-v {
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-v small {
+  margin-left: 2px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.stat-l {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* A strip of figures across a page, as on Aristotle's Progress */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin-bottom: 48px;
+  border-top: 1.5px solid var(--fg);
+  border-bottom: 1px solid var(--rule);
+}
+
+.fig {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px 22px 22px 0;
+}
+
+.fig + .fig {
+  padding-left: 22px;
+  border-left: 1px solid var(--rule);
+}
+
+.fig-l {
+  font-size: 0.81rem;
+  color: var(--muted);
+}
+
+.fig-v {
+  font: 400 2rem / 1.1 var(--sans);
+  letter-spacing: -0.02em;
+}
+
+.fig-v small {
+  margin-left: 3px;
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.fig-s {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Inputs that sit in a line of text */
+.input {
+  padding: 6px 10px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  background: var(--b0);
+  color: var(--fg);
+  font: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--acc);
+  box-shadow: 0 0 0 3px var(--acc-soft);
+}

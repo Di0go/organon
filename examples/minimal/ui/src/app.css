@@ -1,15 +1,4 @@
-/* What this app adds to the core's tokens: its own page, nothing more. */
-body {
-  margin: 0;
-  background: var(--b0);
-  color: var(--fg);
-  font-family: var(--sans);
-}
-
-.page {
-  max-width: var(--measure);
-  padding: 44px clamp(24px, 4vw, 56px) 96px;
-}
+/* What this app adds to the core's styles: its own page's pieces, nothing more. */
 
 .pick {
   display: inline-block;
