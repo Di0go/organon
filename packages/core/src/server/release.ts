@@ -17,7 +17,7 @@
 // From Galen's scripts/release.ts.
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, lstatSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 import type { App } from './app.ts';
 
@@ -70,6 +70,20 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
     return (await liveRoot()) === dir;
   }
 
+  // 0. A pin the release copy could not install is refused before anything is built or stopped.
+  let lock = '';
+  try {
+    lock = readFileSync(path.join(ROOT, 'pnpm-lock.yaml'), 'utf8');
+  } catch {}
+  const unreachable = unreachablePins(lock, ROOT, app.releaseDir);
+  if (unreachable.length) {
+    say(
+      `The lockfile names ${unreachable.join(', ')} by a path relative to this checkout, which the release copy in ` +
+        `${app.releaseDir} cannot reach (pnpm writes file: pins relative). Pin the core to its GitHub release URL.`,
+    );
+    return false;
+  }
+
   // 1. Refuse uncommitted changes and run the gates (not for a rollback, which goes back to a release that passed).
   const rollback = argv.includes('--rollback');
   const previous = tag('live');
@@ -100,6 +114,20 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
     );
   }
   return false;
+}
+
+/**
+ * The local tarballs a lockfile names (`tarball: file:<path>`) that are there from the app's checkout but not from
+ * `dir`, where the release copy installs. pnpm writes a file: pin relative to the lockfile, even one given as an
+ * absolute path, so a pin on releases/ by path works in the checkout and fails in the copy.
+ */
+export function unreachablePins(lock: string, root: string, dir: string): string[] {
+  const out = new Set<string>();
+  for (const m of lock.matchAll(/tarball: file:([^,}\s]+)/g)) {
+    const p = m[1] ?? '';
+    if (existsSync(path.resolve(root, p)) && !existsSync(path.resolve(dir, p))) out.add(p);
+  }
+  return [...out];
 }
 
 /** Whether `p` is a symbolic link, even a broken one (which existsSync reports as missing). */

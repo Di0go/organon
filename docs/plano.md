@@ -181,6 +181,11 @@ partia a app em produção.
   depois do `pack:release` e do push, recusa uma versão que já lá está, e descarrega o ficheiro servido para confirmar
   que é o de `releases/`. Os *tarballs* continuam também commitados em `releases/`: o `canary` e o *rollback* de uma app
   não dependem da rede.
+- **O caminho local não serve a cópia de release** (medido no Argus, 0.4.0). Uma app fixada em `releases/` por
+  caminho absoluto instala na checkout, mas o pnpm grava o `file:` no lockfile relativo a ele (`../Organon/releases/…`),
+  e a partir de `~/.local/share/<app>/app` esse caminho não existe: o `pnpm install --frozen-lockfile` da release falha.
+  Desde a 0.4.1 o `release` recusa-o à partida, antes de construir ou parar o que quer que seja. Uma app só faz release
+  com o núcleo fixado no URL do GitHub.
 
 ### Como uma correcção chega às apps
 
@@ -308,6 +313,16 @@ infraestrutura do Galen ou do Aristotle, medido assim: `docs/inventario.py` ganh
 cada ficheiro do Argus com o mesmo caminho num dos dois, conta as linhas diferentes depois de normalizar (o `NORM`
 alargado a `Argus`/`ARGUS`), e nenhum pode ficar abaixo de 20% de diferença sem estar na lista de excepções do Argus; corre na dev, em `https://argus.test` pela cópia de release e pelo systemd, com `pnpm release --rollback`
 experimentado; o `canary` do Organon corre as *gates* dele e está verde.
+
+**Estado (2026-10-25).** O Argus existe em `~/Projects/Argus`, sobre a 0.4.x, com a página dos anfitriões, a captura
+em várias interfaces e o `get_hosts`. Medido: `inventario.py --against ~/Projects/Argus` sem cópias (cinco ficheiros de
+configuração de ferramentas como excepção, com a razão, em `organon-exceptions.tsv`); a dev a correr; o `canary` das
+*gates* dele verde; o guião de root corrido (`tshark`, `dumpcap` sem root, `argus.test` com certificado confiado).
+Falta: a release e o *rollback* (precisam da palavra do Diogo, e do núcleo publicado no GitHub, pelo ponto acima).
+Entrou no núcleo, puxado por ele: o servidor, o MCP e a ponte, o controlo, a release, a dev, os guiões de `.test` e
+systemd a partir do `app.json`, o grafo de entidades com a procura (do Galen), o HoverCard e as ajudas de teste.
+Ficaram por extrair, por o Argus ainda não precisar: o *drawer*, o chat, a moldura da UI (`Ribbon`, `TabBar`…), o
+SSE, e os ficheiros de configuração dos agentes gerados do `app.json`.
 
 **Primeiro pedido, esboçado** (para uma sessão aberta em `~/Projects/Argus`, que ainda não existe):
 

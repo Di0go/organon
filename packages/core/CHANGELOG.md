@@ -3,6 +3,15 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.4.1
+
+Nothing to change in an app.
+
+- **Fix:** `release` refuses, before building or stopping anything, a lockfile whose core (or any `file:` tarball) the
+  release copy cannot reach. pnpm writes a `file:` pin relative to the lockfile even when package.json gives an
+  absolute path, so a pin on `releases/` installs in the checkout and fails in `~/.local/share/<app>/app`. Found on
+  Argus's first release, in a throwaway copy, before any deploy. The way out is the GitHub release URL.
+
 ## 0.4.0
 
 **What an app changes:** nothing to keep working. To use what is new, an app adds an `app.json` at its root (name,
