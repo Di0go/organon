@@ -1,5 +1,5 @@
-# The core's own workspace. The example app is not in it on purpose: it installs the core from a packed tarball in
-# releases/, exactly as Argus, Galen and Aristotle will, so what it proves is what they will get.
+# The core's own workspace. The example app is not in it on purpose: it installs the core from its GitHub release,
+# exactly as Argus, Galen and Aristotle will, so what it proves is what they will get.
 packages:
   - packages/*
 onlyBuiltDependencies: []
