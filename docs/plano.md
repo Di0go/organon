@@ -326,7 +326,10 @@ Na 0.5.0, puxados pelo tempo real e pela UI do Argus: o SSE (`server/events`, `u
 `dash`, `charts`), as palavras em inglês e português, o `format` com `asDate`, e os gráficos genéricos (o x passou a
 ser um número, já não um dia). Ficaram por extrair, por o Argus ainda não precisar: o *drawer*, o chat, o `Markdown`
 com `tables.ts`, o `Lightbox`, e os ficheiros de configuração dos agentes gerados do `app.json`. O `Markdown` está em
-duas apps e entra pela regra, mas sem consumidor que o teste fica para a migração do Galen, que o usa.
+duas apps e entra pela regra, mas sem consumidor que o teste fica para a migração do Galen, que o usa. A red team do
+Argus achou no núcleo duas falhas, corrigidas na 0.5.0 com teste antes de sair: o `writeFileAtomic` partilhava um
+`.tmp` (duas escritas ao mesmo ficheiro falhavam ou misturavam-se) e o `LiveStream` aplicava, depois de carregar,
+eventos que o estado já incluía (agora numerados, `seq`).
 
 **Primeiro pedido, esboçado** (para uma sessão aberta em `~/Projects/Argus`, que ainda não existe):
 
