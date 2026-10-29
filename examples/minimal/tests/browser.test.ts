@@ -146,3 +146,66 @@ test('On a phone, the ribbon slides in from the menu button and closes on a plac
   assert.equal(await page.evaluate(() => location.hash), '#/notes');
   await page.close();
 });
+
+test("The core's chat beside a page: a message goes with the page, the answer comes back over the live stream", {
+  skip: !CHROMIUM,
+}, async () => {
+  const page = await browser!.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await fetch(`${app.base}/api/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: 'Oil the hinges' }),
+  });
+  await page.goto(`${app.base}/#/notes`);
+  await page.getByRole('button', { name: '« Chat' }).click();
+  const chat = page.getByRole('complementary', { name: 'Chat with Minimal' });
+  await chat.getByText('Ask Minimal anything').waitFor();
+  // Tag a note with @: it goes with the message, and shows as a chip.
+  const box = chat.getByRole('textbox', { name: 'Message Minimal' });
+  await box.fill('what about @Oil');
+  await chat.getByRole('option', { name: /Oil the hinges/ }).click();
+  await page.keyboard.type('please');
+  await page.keyboard.press('Enter');
+  // `cat` stands in for Claude Code: the answer is what it was sent, the page and the tag included.
+  await chat.getByText(/Where they are: The notes/).waitFor();
+  const answer = await chat.locator('.msg.theirs .answer').innerText();
+  assert.match(answer, /On screen:\s+.*Oil the hinges/s);
+  assert.match(answer, /Tagged:\s+Note \d+: Oil the hinges/);
+  assert.match(answer, /Their message: what about @Oil the hinges please/);
+  assert.equal(await chat.locator('.bubble .tag-chip').innerText(), '@Oil the hinges');
+  // Kept: a reload finds the conversation where it was.
+  await page.reload();
+  await page.getByRole('complementary', { name: 'Chat with Minimal' }).locator('.msg.theirs').waitFor();
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test("The core's drawer: opened from the status line, the agent started, typed into, and its screen drawn", {
+  skip: !CHROMIUM,
+}, async () => {
+  const page = await browser!.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  await page.goto(app.base);
+  await page
+    .locator('.statusline')
+    .getByRole('button', { name: /Terminal/ })
+    .click();
+  const drawer = page.getByRole('region', { name: "Claude's drawer" });
+  // The dev instance never starts the agent on its own: it waits for a click.
+  await drawer.getByRole('button', { name: 'Start Claude' }).click();
+  await drawer.getByText('Running in the Organon minimal folder').waitFor();
+  await drawer.locator('.xterm-helper-textarea').focus();
+  await page.keyboard.type('echo drawer-$((6*7)) $MINIMAL_DRAWER');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => /drawer-42 1/.test(document.querySelector('.xterm-rows')?.textContent ?? ''));
+  await drawer.getByRole('button', { name: 'Stop' }).click();
+  await drawer.getByText('Not running').waitFor();
+  await page.keyboard.press('Control+`');
+  await page.waitForFunction(() => !document.querySelector('.drawer')?.classList.contains('open'));
+  assert.deepEqual(errors, []);
+  await page.close();
+});

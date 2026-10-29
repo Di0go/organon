@@ -4,6 +4,7 @@ import '@organon/core/ui/base.css';
 import '@organon/core/ui/shell.css';
 import '@organon/core/ui/dash.css';
 import '@organon/core/ui/charts.css';
+import '@organon/core/ui/agent.css';
 import './app.css';
 import { mount } from 'svelte';
 import App from './App.svelte';

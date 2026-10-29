@@ -2,14 +2,20 @@
 // core's settings and store bound to this app's folders, and one thing of its own on each extension point it shows:
 // a setting of its own (`motto`, kept beside the core's keys in settings.json), a record of its own
 // (data/notes.json), routes of its own, a tool of its own (get_notes), and its own event on the core's live stream
-// (a note added reaches every open page at once).
+// (a note added reaches every open page at once). The agent's drawer (an agent CLI in a pseudo-terminal, or the
+// app's own agent on a model API, which reaches get_notes in process) and the chat beside a page are the core's,
+// with the app's words for what it is and what a page is about.
 
 import path from 'node:path';
+import { chatRoutes, Chats } from '@organon/core/server/chat';
 import { EventHub } from '@organon/core/server/events';
 import { ApiError, json, readJson, serve } from '@organon/core/server/http';
-import { createMcpHandler, defineTools, json as toolJson, READ_ONLY } from '@organon/core/server/mcp';
+import { createMcpHandler, defineTools, type McpOptions, json as toolJson, READ_ONLY } from '@organon/core/server/mcp';
+import { createMethod } from '@organon/core/server/method';
+import { createOneshot } from '@organon/core/server/oneshot';
 import { createSettings, onPath, SettingsError } from '@organon/core/server/settings';
 import { createStore, isObject } from '@organon/core/server/store';
+import { Tutor } from '@organon/core/server/tutor';
 import { Warnings } from '@organon/core/server/warnings';
 import { app } from './config.ts';
 
@@ -35,13 +41,55 @@ const tools = defineTools((mcp) => {
   );
 });
 
+const mcp: McpOptions = { instructions: () => 'The example app: notes and a motto. get_notes reads them.', tools };
+const method = createMethod({
+  root: app.root,
+  section: 'Working here',
+  otherAgents: 'This was written for Claude Code.',
+  tool: { title: 'Read the routines', description: 'How to work here.', name: 'a routine' },
+});
+
+// The drawer: Claude Code by default (MINIMAL_CLAUDE_CMD in its place in the tests), or the app's own agent.
+const tutor = new Tutor({
+  app,
+  settings,
+  api: {
+    method,
+    mcp,
+    intro: 'You are the agent in the Organon example app: it keeps notes.',
+    here: 'Replies are a line or two. Read the notes with get_notes before you talk about them.',
+    dropped: '(Earlier parts of this conversation were dropped to fit: get_notes says where things stand.)',
+  },
+});
+
+// The chat beside the Notes page, on its own Claude Code (MINIMAL_ONESHOT_CMD in its place in the tests), talk only.
+const chats = await Chats.load({
+  app,
+  store,
+  oneshot: createOneshot({ app, settings }),
+  system: 'You are the Organon example app, talking beside one of its pages. Plain Markdown, short.',
+});
+chats.onEvent((e) => events.send(e));
+const chatApi = chatRoutes(chats, {
+  context: (thread, body) =>
+    [`Where they are: ${body.where ?? thread}`, body.page && `On screen:\n${body.page}`, body.mentions && `Tagged:\n${body.mentions}`]
+      .filter(Boolean)
+      .join('\n\n'),
+});
+
 await serve(app, {
   warnings,
   accent: () => settings.accent,
   state: () => ({ motto: motto(), notes: notes.notes }),
-  mcp: createMcpHandler(app, { instructions: () => 'The example app: notes and a motto. get_notes reads them.', tools }),
-  stop: async () => events.close(),
-  api: async (req, res, route) => {
+  mcp: createMcpHandler(app, mcp),
+  upgrade: tutor.upgrade,
+  stop: async () => {
+    await chats.idle();
+    events.close();
+    tutor.stop();
+  },
+  api: async (req, res, route, params) => {
+    if (await chatApi(req, res, route, params)) return true;
     if (req.method === 'GET' && route === '/api/events') return events.stream(req, res);
     if (req.method === 'GET' && route === '/api/settings') return json(res, 200, { ...settings.view(onPath), motto: motto() });
     if (req.method === 'PUT' && route === '/api/settings') {

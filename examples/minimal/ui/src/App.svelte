@@ -1,8 +1,10 @@
 <script lang="ts">
   // The core's frame around two pages: Home (the app's own motto, the core's look picker, who runs the agent through
   // the core's settings) and Notes (live over the core's event stream, searched by the core's palette, charted by its
-  // columns). Each extension point gets one thing of the app's.
+  // columns, with the core's chat beside it). The core's agent drawer at the foot, opened from the status line or
+  // with Ctrl+`. Each extension point gets one thing of the app's.
   import type { Place } from '@organon/core/ui/Ribbon.svelte';
+  import ChatPanel from '@organon/core/ui/ChatPanel.svelte';
   import Columns from '@organon/core/ui/charts/Columns.svelte';
   import ContextMenu from '@organon/core/ui/ContextMenu.svelte';
   import Frame from '@organon/core/ui/Frame.svelte';
@@ -12,6 +14,9 @@
   import Search from '@organon/core/ui/Search.svelte';
   import StatusLine from '@organon/core/ui/StatusLine.svelte';
   import TabBar from '@organon/core/ui/TabBar.svelte';
+  import TerminalDrawer from '@organon/core/ui/TerminalDrawer.svelte';
+  import { tutor } from '@organon/core/ui/tutor';
+  import Page from '@organon/core/ui/Page.svelte';
   import { notes, router, tabs } from './state.svelte.ts';
   import { theme } from './theme.svelte.ts';
 
@@ -57,9 +62,28 @@
     draft = '';
   }
 
+  /** This app has no Markdown renderer of its own: answers are shown as plain paragraphs, escaped. */
+  function plain(source: string): string {
+    const safe = source.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c);
+    return safe
+      .split(/\n{2,}/)
+      .map((p) => `<p>${p}</p>`)
+      .join('');
+  }
+
+  function onKey(e: KeyboardEvent) {
+    if (e.ctrlKey && e.key === '`') {
+      e.preventDefault();
+      tutor.toggle();
+    }
+  }
+
   load();
   notes.live.start();
+  tutor.connect();
 </script>
+
+<svelte:window onkeydown={onKey} />
 
 <Frame app="minimal">
   {#snippet ribbon()}<Ribbon {places} look={theme} />{/snippet}
@@ -68,6 +92,9 @@
   {#snippet status()}
     <StatusLine warnings={notes.warnings}>
       <span class="st"><i class:on={notes.live.connected}></i>{notes.list.length} notes</span>
+      <button class="st drawer-toggle" onclick={() => tutor.toggle()} title="The terminal the agent runs in (Ctrl+`)">
+        <i class:on={tutor.running}></i>{tutor.mode === 'api' ? 'Agent' : 'Terminal'}
+      </button>
     </StatusLine>
   {/snippet}
 
@@ -98,7 +125,18 @@
       {#if problem}<p role="alert">{problem}</p>{/if}
     </div>
   {:else}
-    <div class="page">
+    <Page app="minimal" name="Minimal" loaded={notes.live.loaded}>
+      {#snippet chat()}
+        <ChatPanel
+          chats={notes.chats}
+          thread="notes"
+          title="The notes"
+          name="Minimal"
+          markdown={plain}
+          page={() => notes.list.join('\n')}
+          mentions={() => notes.list.map((n, i) => ({ label: n, kind: 'Note', hint: `#${i + 1}`, context: () => `Note ${i + 1}: ${n}` }))}
+        />
+      {/snippet}
       <header class="page-head">
         <h1 class="page-title">{router.route.page === 'note' ? title(location.hash) : 'Notes'}</h1>
       </header>
@@ -126,9 +164,13 @@
           <Columns label="Characters" points={notes.list.map((n, i) => ({ key: String(i), label: String(i + 1), value: n.length }))} />
         </section>
       {/if}
-    </div>
+    </Page>
   {/if}
 </Frame>
+
+{#if tutor.mounted}
+  <TerminalDrawer app="minimal" title="Organon minimal" look={theme} markdown={plain} />
+{/if}
 
 <HoverCard />
 <Search

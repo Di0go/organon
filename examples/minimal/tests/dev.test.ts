@@ -23,8 +23,9 @@ let browser: Browser | undefined;
 let viteLog = '';
 
 before(async () => {
-  app = await start();
   const port = await freePort();
+  // The server is told Vite's port, so the pages Vite serves are its own (the drawer's WebSocket checks the Origin).
+  app = await start(undefined, undefined, { VITE_PORT: String(port) });
   base = `http://localhost:${port}`;
   vite = spawn('pnpm', ['exec', 'vite', '--force'], {
     cwd: path.resolve(import.meta.dirname, '..'),
@@ -55,6 +56,14 @@ test('pnpm dev: Vite serves the page from source and it draws, with no error', {
   await page.goto(base);
   await page.getByRole('button', { name: 'Red' }).click({ timeout: 10_000 });
   assert.equal(await page.evaluate(() => document.documentElement.dataset.accent), 'red');
+  // The drawer's terminal loads xterm, which only the core imports: pre-bundled through the core (organon()), or the
+  // page would get 504 Outdated Optimize Dep and reload. Its WebSocket comes through Vite's proxy.
+  await page.keyboard.press('Control+`');
+  const drawer = page.getByRole('region', { name: "Claude's drawer" });
+  await drawer.getByRole('button', { name: 'Start Claude' }).click({ timeout: 10_000 });
+  await drawer.locator('.xterm-rows').waitFor({ timeout: 10_000 });
+  await page.waitForFunction(() => (document.querySelector('.xterm-rows')?.textContent ?? '').trim().length > 0);
+  await drawer.getByRole('button', { name: 'Stop' }).click();
   assert.deepEqual(errors, []);
   assert.doesNotMatch(viteLog, /error/i, viteLog);
   await page.close();

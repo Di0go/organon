@@ -14,9 +14,16 @@ export interface Running {
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 
-/** Starts server/index.ts; `stateDir` / `dataDir` to start it on folders made beforehand (a settings.json, a record). */
-export async function start(stateDir?: string, dataDir?: string): Promise<Running> {
-  return startServer(ROOT, { stateDir, dataDir });
+/**
+ * Starts server/index.ts; `stateDir` / `dataDir` to start it on folders made beforehand (a settings.json, a record),
+ * `env` for more of its MINIMAL_* variables. Never a real Claude Code: a plain shell runs in the drawer, and `cat` answers the chat with what it was sent.
+ */
+export async function start(stateDir?: string, dataDir?: string, env: Record<string, string> = {}): Promise<Running> {
+  return startServer(ROOT, {
+    stateDir,
+    dataDir,
+    env: { CLAUDE_CMD: 'bash --norc --noprofile', ONESHOT_CMD: 'cat', TERMINAL_QUIET_MS: '300', ...env },
+  });
 }
 
 export async function put(base: string, body: unknown): Promise<{ status: number; json: Record<string, unknown> }> {
