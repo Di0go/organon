@@ -3,7 +3,7 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
-## Unreleased
+## 0.7.0
 
 **What an app changes:** nothing to keep working. To use the core's Markdown instead of its own copy (Galen's and
 Aristotle's `markdown.ts`, `tables.ts`, `maths.svelte.ts`, `visible.ts`, `Markdown.svelte`, `Lightbox.svelte`,
@@ -48,6 +48,25 @@ shims):
   `ui/Page.svelte` and `ui/agent.css` (after shell.css and dash.css). Their words are in words.ts; an app says its own
   with `setWords` where they name what it keeps. Frame keeps drafts under the app's name.
 - `organon()` pre-bundles the drawer's xterm through the core too (`@xterm/xterm`, `@xterm/addon-fit`).
+
+**Settings, the tooling, the hover card and the charts.** Nothing to change to keep working. To use what is new:
+
+- `server/settings-routes` (`settingsRoutes(settings, { view, identity })`): GET and PUT `/api/settings` and GET
+  `/api/settings/models`, as Aristotle and Galen wrote them twice. `view` is what both answer with, the app's keys on
+  it (Galen's watch door).
+- `ui/AgentSettings.svelte` (`name`, and `after`: the app's own sections after Save, given the view and `set` to lay a
+  newer view's keys of the app's over it): who runs in the drawer, the model API, the chat. Its words are in words.ts
+  (`settings*`, English and Portuguese); `settingsAgent` is what the page calls who runs there ("agent"; Aristotle's
+  "tutor"), and `settingsLede`, `settingsSwitch` what the app keeps.
+- `server/gates` (`runGates(root, gates)`) and `server/stop-hook` (`runStopHook(root, { zones, generate })`,
+  `undocumented`, `NO_DOCS`, `NO_DOCS_AUTHOR`, `DocZone`): Aristotle's and Galen's scripts/gates.ts and
+  claude-stop-hook.ts, the same file but for names; the app hands in its gates, its doc zones and its docs generator.
+  The hook stays out of the app's drawer by `<PREFIX>_DRAWER`.
+- `ui/HoverCard.svelte`: a `{{term|definition}}` gets its card, and `inline` lets the app render each paragraph of a
+  card (Galen's Markdown in a tip).
+- `ui/charts/LineChart.svelte` takes `left`, its left margin (44 px by default).
+- **Fix:** a tick at either end of a chart's axis is anchored inside it (start or end) whoever chose the ticks; given
+  ticks were centred and cut at the edge.
 
 ## 0.6.1
 

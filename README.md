@@ -45,7 +45,9 @@ source, served by the `organon()` Vite plugin.
 | **Server** | `server/app`, `server/http` | `defineApp` over an `app.json`, and the server without its routes: loopback only, this user only, exact Host and Origin, the CSP, the built interface, health and state. |
 | **Live events** | `server/events`, `ui/live` | One Server-Sent Events stream every open page listens on; the page's end reloads everything on reconnect and picks up a new release. |
 | **MCP** | `server/mcp`, `server/bridge` | The app's tools for its agent, over HTTP and through a stdio bridge. |
-| **Settings** | `server/settings` | The app's `settings.json`, with its own keys beside the core's. A file that can't be read or parsed is set aside and said, never written over. |
+| **Settings** | `server/settings`, `server/settings-routes`, `ui/AgentSettings.svelte` | The app's `settings.json`, with its own keys beside the core's. A file that can't be read or parsed is set aside and said, never written over. The page that picks who runs in the drawer, with the app's own sections after it. |
+| **The agent** | `server/tutor`, `server/agents`, `server/terminal`, `server/tutor-api`, `server/llm`, `ui/TerminalDrawer.svelte` | The drawer at the foot of every page: an agent CLI in a pseudo-terminal (Claude Code by default), or the app's own agent on any OpenAI-compatible model API. |
+| **The chat** | `server/chat`, `server/oneshot`, `ui/Page.svelte`, `ui/ChatPanel.svelte` | A chat beside a page, about what is on it, its answer streamed over the live events. |
 | **Storage** | `server/store` | JSON files and append-only logs in the app's `data/`, written atomically and in turn, never over a file it could not read. |
 | **Release** | `server/release`, `server/control`, `scripts/` | A clean name on `.test` with TLS, a systemd service, a release copy, and rollback. |
 | **Entities** | `shared/entities` | An app's things as a graph: find by any name, walk the links, search. |
@@ -54,6 +56,7 @@ source, served by the `organon()` Vite plugin.
 | **Markdown** | `ui/markdown`, `ui/Markdown.svelte`, `ui/Lightbox.svelte`, `ui/maths`, `ui/prose.css`, `ui/katex.css` | Markdown sanitised, with maths, Mermaid diagrams, callouts, animated drawings and a lightbox; the app's own syntax and links plugged in. |
 | **Charts** | `ui/charts/*` | Lines, columns, stacked columns, and every chart as a table, in series that stay apart for colour-blind eyes. |
 | **The look** | `ui/theme`, `ui/LookPicker.svelte` | Light or dark, and the accent, set before the first paint. |
+| **Tooling** | `server/gates`, `server/stop-hook`, `server/backup` | Every check in one command (`pnpm gates`), the Stop hook that sends an agent back to the docs its change left behind, and the data folder's own Git backups. |
 | **Vite** | `vite` | `organon()`: serves the look's boot script, the dev port and proxy from `app.json`, and keeps the core's source out of pre-bundling, its interface's dependencies in it. |
 
 ## Use it
@@ -61,7 +64,7 @@ source, served by the `organon()` Vite plugin.
 Pin a release by its URL. The lockfile keeps the tarball's hash, so a version can never change under an app.
 
 ```sh
-pnpm add https://github.com/Di0go/organon/releases/download/v0.5.0/organon-core-0.5.0.tgz
+pnpm add https://github.com/Di0go/organon/releases/download/v0.7.0/organon-core-0.7.0.tgz
 ```
 
 Then wire it in, as [`examples/minimal`](examples/minimal) does:
