@@ -373,7 +373,7 @@ foi feita com a palavra do Diogo, e o rollback experimentado; a migração não 
 > de backup. A release só com a palavra
 > do Diogo. Feito quando: o critério do passo 2 do plano, corrido e medido.
 
-**Como correu (2026-10-29), para o Aristotle.** O Galen migrou em 23 commits na branch `organon`, sobre a 0.5.1, a
+**Como correu (2026-10-29), para o Aristotle.** O Galen migrou em 25 commits na branch `organon` (mais um da Prettier), sobre a 0.5.1, a
 0.6.0, a 0.6.1 e a 0.7.0, todas puxadas por ele. O que correu diferente do plano, e o que o Aristotle vai encontrar:
 
 - **O núcleo não chegava, nem de longe.** A 0.5.1 tinha o que o Argus pedira; o Galen puxou três versões. A 0.6.0
@@ -405,8 +405,20 @@ foi feita com a palavra do Diogo, e o rollback experimentado; a migração não 
   o Vite e dois subagentes ao mesmo tempo, com outras sessões a correr. Corre uma coisa pesada de cada vez. Com a
   máquina carregada (load 20), os testes do terminal (5 s) e o teste de dev falham por tempo e passam sozinhos: antes de
   procurar um defeito, corre-os sozinhos.
-- **Um commit por módulo, com `Docs: none -- …`.** Os docs mudaram juntos, no último commit da série; os commits de
-  módulo levam a razão, para o teste dos docs. Cada commit foi verificado a construir.
+- **Um commit por módulo, mas não uma prova por commit.** Do 1/n ao 16/n, cada commit teve o seu diferencial. Do 18/n
+  ao 23/n, a primeira sessão morreu com o trabalho por commitar, e a segunda dividiu-o depois em commits por grupo de
+  módulos (servidor; Markdown; *drawer* e chat; gráficos; *tooling*; Settings). Os diferenciais correram na ponta, e
+  cada um desses commits foi construído numa worktree à parte (tipos, lint, build). Os docs mudaram juntos no 24/n; os
+  commits de módulo levam `Docs: none -- …`. O hook de pre-commit verifica a árvore de trabalho e não o commit, e
+  acrescenta os docs gerados: para dividir commits, `--no-verify` e uma worktree por commit. O Aristotle deve fazer
+  commit a cada módulo provado, para não ter de dividir depois.
+- **As excepções dos diferenciais têm de ser estreitas.** A red team viu que uma excepção por passo deixava passar
+  tudo nesse passo (o CSP, o status), e que o glifo do telemóvel se comparava sem contar. Agora uma excepção de corpo
+  exige o mesmo status, os mesmos cabeçalhos e o mesmo redireccionamento, e o glifo conta como permitido ou diferente.
+- **Por corrigir no núcleo:** `pnpm release --rollback` lê o lockfile da checkout antes de saber que é um rollback, por
+  isso um pino `file:` na checkout bloqueia um rollback cujo alvo não tem nada a ver com ele (`server/release.ts`,
+  passos 0 e 1). Na release do Galen não morde, porque a checkout tem o pino pelo URL. A correcção é saltar essas
+  verificações no rollback ou ler o lockfile do commit alvo, com um teste, numa 0.7.1.
 - **A release espera pelo push.** A release recusa um pino `file:` (0.4.1), por isso o Galen só vai ao vivo depois de a
   versão estar no GitHub (`pnpm publish:release`). Na dev, um *tarball* da árvore de trabalho num sítio descartável
   (`scripts/pack.ts`, `pack(dir, { overwrite: true })`) serve para iterar sem gastar versões.
