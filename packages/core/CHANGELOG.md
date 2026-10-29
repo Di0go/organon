@@ -3,6 +3,15 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.6.1
+
+Nothing to change in an app.
+
+- **Fix:** `organon()` has Vite's dependency scan treat the core as external. Crawling the core's `.svelte` files,
+  Vite 8's scan failed on their own relative imports (`./LookPicker.svelte` from `Ribbon.svelte`), skipped
+  pre-bundling, and an app with dependencies of its own found them with the page already loading: `504 Outdated
+  Optimize Dep` and a reload in `pnpm dev`. The build was not affected. Found by Galen's dev test.
+
 ## 0.6.0
 
 **What an app changes:** nothing to keep working. In dev, Vite's proxy now carries WebSockets on `/api`, as the
