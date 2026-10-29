@@ -9,13 +9,21 @@
   // From Galen's HoverCard.svelte, with the person's card and the inline Markdown left to the app.
   import { onMount, type Snippet, tick } from 'svelte';
 
-  let { entity }: { entity?: Snippet<[string]> } = $props();
+  let {
+    entity,
+    inline,
+  }: {
+    entity?: Snippet<[string]>;
+    /** Each paragraph as safe HTML (the core's renderInline from ui/markdown); plain text when not given. */
+    inline?: (text: string) => string;
+  } = $props();
 
   type Card = { title: string; paras: string[]; entity?: string };
   type Rect = { left: number; top: number; bottom: number; width: number };
 
   const WIDTH = 320;
-  const SELECTOR = '[data-tip], [data-tip-entity]';
+  // A {{term|definition}} from the core's Markdown is a .term carrying its definition.
+  const SELECTOR = '.term[data-def], [data-tip], [data-tip-entity]';
   let box = $state<HTMLDivElement>();
 
   let card = $state<Card | null>(null);
@@ -64,14 +72,19 @@
   });
 
   function build(el: HTMLElement): Card | null {
+    if (el.matches('.term[data-def]')) return { title: el.textContent ?? '', paras: paras(el.dataset.def ?? '') };
     if (el.dataset.tipEntity && entity) return { title: '', paras: [], entity: el.dataset.tipEntity };
     const tip = el.dataset.tip;
     if (!tip) return null;
-    const paras = tip
-      .split(/\n\s*\n/)
+    return { title: el.dataset.tipTitle ?? '', paras: paras(tip) };
+  }
+
+  /** A paragraph per blank line (or <br><br>, as a term's definition writes it). */
+  function paras(source: string): string[] {
+    return source
+      .split(/\n\s*\n|<br>\s*<br>/)
       .map((p) => p.trim())
       .filter(Boolean);
-    return { title: el.dataset.tipTitle ?? '', paras };
   }
 
   /** The line of a (possibly wrapped) element nearest y, or its first line. */
@@ -145,7 +158,9 @@
     {:else}
       {#if card.title}<p class="hc-title">{card.title}</p>{/if}
       <div class="hc-body">
-        {#each card.paras as p, i (i)}<p>{p}</p>{/each}
+        {#each card.paras as p, i (i)}
+          {#if inline}<p>{@html inline(p)}</p>{:else}<p>{p}</p>{/if}
+        {/each}
       </div>
     {/if}
   </div>
