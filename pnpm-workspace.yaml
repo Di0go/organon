@@ -2,4 +2,5 @@
 # exactly as Argus, Galen and Aristotle will, so what it proves is what they will get.
 packages:
   - packages/*
-onlyBuiltDependencies: []
+onlyBuiltDependencies:
+  - node-pty

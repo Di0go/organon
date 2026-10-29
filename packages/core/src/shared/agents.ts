@@ -3,9 +3,10 @@
 // usual addresses, and the settings the interface reads and changes (GET/PUT /api/settings).
 //
 // From shared/tutor.ts, the same in Aristotle and Galen but for comments and Galen's watch door, which is Galen's own
-// and now rides on SettingsView as an app extension (`SettingsView & { health: … }`). The bridge's WebSocket messages
-// (TutorMessage) come here with the bridge itself, not in this slice. The names on disk stay "tutor" and "helpers":
-// they are settings.json's format, and renaming them would be a data migration for no gain.
+// and now rides on SettingsView as an app extension (`SettingsView & { health: … }`). What the drawer's WebSocket
+// carries (TutorMessage, TutorClientMessage, TutorEntry) came in with the drawer, from the same file. The names on
+// disk stay "tutor" and "helpers": they are settings.json's format, and renaming them would be a data migration for
+// no gain.
 
 /** The agent CLIs the terminal drawer can run. Each connects to the app over MCP. */
 export const AGENTS = [
@@ -90,3 +91,56 @@ export function maskKey(key: string): string {
   if (key.length <= 8) return '••••';
   return `${key.slice(0, key.startsWith('sk-') ? 5 : 3)}…${key.slice(-4)}`;
 }
+
+/**
+ * One line of the API agent's conversation as the drawer shows it: what was asked of it, what it said, each tool it
+ * called (one line: the tool and what it was about), and anything that went wrong.
+ */
+export interface TutorEntry {
+  id: string;
+  kind: 'user' | 'text' | 'tool' | 'error' | 'notice';
+  text: string;
+  /** For a tool: its name, and whether it is running, done or failed. */
+  tool?: string;
+  state?: 'running' | 'done' | 'failed';
+  at: string;
+}
+
+/** What the drawer's WebSocket sends: the engine's state, then a terminal's output or the API agent's conversation. */
+export type TutorMessage =
+  | {
+      type: 'state';
+      running: boolean;
+      /** How the drawer shows it: a terminal, or the API agent's conversation. */
+      mode: 'terminal' | 'api';
+      engine: TutorEngine;
+      /** What the interface calls it ("Claude", "Codex", or the API agent's name). */
+      name: string;
+      command?: string;
+      /** Why it can't run (an agent not installed, an API not set up). */
+      problem?: string;
+    }
+  /** `replay`: the recent screen, sent once on connect; the client redraws from it. */
+  | { type: 'output'; data: string; replay?: boolean }
+  | { type: 'exit'; code: number }
+  /** The whole conversation (on connect, and when it starts over). */
+  | { type: 'transcript'; entries: TutorEntry[] }
+  /** A new line, or one that changed (a tool that finished). */
+  | { type: 'entry'; entry: TutorEntry }
+  /** Text added to a line as the model writes it. */
+  | { type: 'delta'; id: string; text: string }
+  /** Whether the API agent is working, on what ("thinking", "log day"), and since when (ms since the epoch). */
+  | { type: 'activity'; busy: boolean; doing: string; since: number };
+
+/** What the drawer sends; anything malformed is ignored. */
+export type TutorClientMessage =
+  /** `auto`: the interface opening, not a click; only the live app starts an agent that way. */
+  | { type: 'start'; resume?: boolean; auto?: boolean }
+  /** A request from the interface: `text` (a slash command) for an agent that has the skills, `initial` in words. */
+  | { type: 'run'; text: string; initial?: string }
+  /** A new conversation: the one so far is set aside. */
+  | { type: 'clear' }
+  | { type: 'stop' }
+  | { type: 'input'; data: string }
+  | { type: 'send'; text: string }
+  | { type: 'resize'; cols: number; rows: number };
