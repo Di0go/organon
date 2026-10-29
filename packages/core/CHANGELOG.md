@@ -3,6 +3,30 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## Unreleased
+
+**What an app changes:** nothing to keep working. To use the core's Markdown instead of its own copy (Galen's and
+Aristotle's `markdown.ts`, `tables.ts`, `maths.svelte.ts`, `visible.ts`, `Markdown.svelte`, `Lightbox.svelte`,
+`prose.css`), each becomes a shim:
+
+- `ui/markdown`: `renderMarkdown`, `renderInline`, and `createMarkdown({ extensions, tablePieces, keep })` for an app
+  with syntax of its own (Aristotle's `[[concept]]` links: the extension, and its pattern so a table cell keeps it
+  whole); `escapeHtml` and `startAt` for writing those extensions. `ui/tables`: `escapeTablePipes`.
+- `ui/Markdown.svelte`: `source`, `inline`, and the app's `markdown` (its renderer), `links` (href in, the app's href
+  or undefined out: Galen's links between notes), `look` (its theme, so diagrams follow it), `enhance` (its own work
+  on the rendered page) and `ownFigures` (a selector its own live figures answer to).
+- `ui/Lightbox.svelte`: `figure` (the app's own figures first: Aristotle's plate, its kit left alone).
+- `ui/maths` (KaTeX, loaded after the first paint), `ui/visible`, `ui/prose.css`, `ui/katex.css`.
+- Mermaid asks for a KaTeX of its own; keep `"mermaid>katex": "^0.19.0"` in the app's `pnpm.overrides`, which only
+  count at the root of an install, so the core can't carry it.
+
+- **Fix:** a table cell's `` `a|b` ``, `$|x|$` and `{{term|definition}}` no longer split the row (Aristotle's
+  3516991, which Galen did not have).
+- **Fix:** a look changed while a Mermaid diagram was first drawn left its placeholder for good; it is drawn in the
+  new look. Found by the example's dev test.
+- `organon()` puts the core's interface's dependencies (`marked`, `dompurify`, `katex`, `mermaid`) in Vite's
+  pre-bundling, through the core: left to the dev server, Mermaid's CommonJS `dayjs` stops it.
+
 ## 0.6.1
 
 Nothing to change in an app.
