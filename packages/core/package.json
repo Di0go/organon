@@ -57,6 +57,10 @@
       "types": "./dist/server/mcp.d.ts",
       "default": "./dist/server/mcp.js"
     },
+    "./server/method": {
+      "types": "./dist/server/method.d.ts",
+      "default": "./dist/server/method.js"
+    },
     "./server/bridge": {
       "types": "./dist/server/bridge.d.ts",
       "default": "./dist/server/bridge.js"

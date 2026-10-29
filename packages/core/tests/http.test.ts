@@ -100,3 +100,47 @@ test('Closing removes the pid file', async () => {
   await s.close();
   assert.ok(!existsSync(other.pidFile));
 });
+
+test('A WebSocket upgrade reaches the app only from its own page: exact Host, an Origin of its own, same site', async () => {
+  // An app of its own: the first one holds its port.
+  const other = await fixtureApp();
+  const sock = await serve(other, {
+    signals: false,
+    // The app's handler: takes /api/sock, answers 101 itself (as a WebSocket server would), and nothing else.
+    upgrade: (_req, socket, _head, route) => {
+      if (route !== '/api/sock') return false;
+      socket.end('HTTP/1.1 101 Switching Protocols\r\nUpgrade: test\r\nConnection: Upgrade\r\n\r\n');
+      return true;
+    },
+  });
+  const ask = (path: string, headers: Record<string, string>) =>
+    new Promise<number>((resolve, reject) => {
+      const req = http.request({
+        host: '127.0.0.1',
+        port: sock.port,
+        path,
+        headers: { Connection: 'Upgrade', Upgrade: 'test', Host: `127.0.0.1:${sock.port}`, ...headers },
+      });
+      req.on('upgrade', (res, socket) => {
+        socket.destroy();
+        resolve(res.statusCode ?? 0);
+      });
+      req.on('response', (res) => {
+        res.resume();
+        resolve(res.statusCode ?? 0);
+      });
+      req.on('error', reject);
+      req.end();
+    });
+  const self = `http://127.0.0.1:${sock.port}`;
+  try {
+    assert.equal(await ask('/api/sock', { Origin: self }), 101, 'its own page');
+    assert.equal(await ask('/api/sock', {}), 403, 'no Origin: not a page of its own');
+    assert.equal(await ask('/api/sock', { Origin: 'http://evil.test' }), 403, 'another page');
+    assert.equal(await ask('/api/sock', { Origin: self, Host: 'evil.test' }), 403, 'another name');
+    assert.equal(await ask('/api/sock', { Origin: self, 'Sec-Fetch-Site': 'cross-site' }), 403, 'cross-site');
+    assert.equal(await ask('/api/other', { Origin: self }), 403, 'a path the app does not take');
+  } finally {
+    await sock.close();
+  }
+});

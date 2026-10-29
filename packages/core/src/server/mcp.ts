@@ -62,6 +62,12 @@ export interface McpOptions {
   tools: ToolDef[] | (() => ToolDef[]);
   /** Tools the agent in the app's own drawer always has loaded, never deferred. */
   core?: string[];
+  /**
+   * More for one request's server, by who asks: `client` is its own name ("claude-code", "codex-mcp-client"…, or the
+   * app's name for its own agent in process), `drawer` whether it is the app's drawer. The app's `method` and prompts
+   * (method.ts) go here, for the clients that don't load skills themselves.
+   */
+  extend?: (mcp: McpServer, context: { client: string; drawer: boolean }) => void;
 }
 
 /** Shared by every per-request server: building a validator is most of what creating one costs. */
@@ -79,6 +85,7 @@ export function createMcpServer(app: App, options: McpOptions, { drawer = false,
     const always = drawer && core.has(name) ? { _meta: { 'anthropic/alwaysLoad': true } } : {};
     mcp.registerTool(name, { ...(config as object), ...always } as never, handler as never);
   }
+  options.extend?.(mcp, { client, drawer });
   return mcp;
 }
 
@@ -100,7 +107,8 @@ export function createMcpHandler(app: App, options: McpOptions): (req: http.Inco
     const agent = req.headers['x-organon-agent'];
     const mcp = createMcpServer(app, once, {
       drawer: req.headers['x-organon-client'] === 'drawer',
-      client: typeof agent === 'string' ? agent : '',
+      // The app's own name is its agent in process (which has the rules already): never a client over HTTP.
+      client: typeof agent === 'string' && agent !== app.name ? agent : '',
     });
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
     res.on('close', () => {

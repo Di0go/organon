@@ -1,0 +1,21 @@
+// vite.ts: the plugin every app's vite.config.ts uses. Given the app's root, Vite's port and its proxy come from
+// app.json; the proxy carries WebSockets on /api (Galen's and Aristotle's terminal drawer, /api/terminal, goes
+// through Vite in dev), and the core stays out of Vite's pre-bundling.
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { organon } from '../src/vite.ts';
+import { fixtureApp } from './fixture-app.ts';
+
+test("The plugin takes Vite's port and proxy from app.json, WebSockets on /api included", async () => {
+  const app = await fixtureApp();
+  const config = (organon({ root: app.root }).config as () => Record<string, unknown>)() as {
+    optimizeDeps: { exclude: string[] };
+    server: { port: number; proxy: Record<string, string | { target: string; ws?: boolean }> };
+  };
+  assert.deepEqual(config.optimizeDeps.exclude, ['@organon/core']);
+  assert.equal(config.server.port, app.vitePort);
+  const target = `http://127.0.0.1:${app.port}`;
+  assert.deepEqual(config.server.proxy['/api'], { target, ws: true });
+  assert.equal(config.server.proxy['/mcp'], target);
+});

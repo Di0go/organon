@@ -62,7 +62,7 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
     if (!existsSync(dataLink) && !isLink(dataLink)) symlinkSync(dataDir, dataLink);
     run('pnpm', ['install', '--frozen-lockfile', '--prefer-offline', '--silent'], dir);
     run('pnpm', ['run', '--silent', 'build'], dir);
-    run('bash', [path.join(dir, 'node_modules/@organon/core/scripts/install-service.sh'), dir], dir, {
+    run('bash', serviceScript(dir), dir, {
       ...process.env,
       [`${app.prefix}_DATA_DIR`]: dataDir,
       [`${app.prefix}_STATE_DIR`]: stateDir,
@@ -75,6 +75,14 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
   try {
     lock = readFileSync(path.join(ROOT, 'pnpm-lock.yaml'), 'utf8');
   } catch {}
+  const unverified = unverifiedPins(lock);
+  if (unverified.length) {
+    say(
+      `The lockfile has no integrity for ${unverified.join(', ')}: the release copy's frozen install would refuse it. ` +
+        'Add it again (pnpm add <the same URL>) or put back the hash GitHub serves.',
+    );
+    return false;
+  }
   const unreachable = unreachablePins(lock, ROOT, app.releaseDir);
   if (unreachable.length) {
     say(
@@ -128,6 +136,31 @@ export function unreachablePins(lock: string, root: string, dir: string): string
     if (existsSync(path.resolve(root, p)) && !existsSync(path.resolve(dir, p))) out.add(p);
   }
   return [...out];
+}
+
+/**
+ * The tarballs a lockfile pins by URL with no integrity beside them. pnpm can leave it out (a tarball it had in its
+ * store already, found on Galen's move to 0.5.1), and a frozen install, the release copy's, then refuses it.
+ */
+export function unverifiedPins(lock: string): string[] {
+  const out = new Set<string>();
+  for (const m of lock.matchAll(/resolution: \{([^}]*)\}/g)) {
+    const fields = m[1] ?? '';
+    const url = /tarball: (https?:\/\/[^,\s]+)/.exec(fields)?.[1];
+    if (url && !/integrity:/.test(fields)) out.add(url);
+  }
+  return [...out];
+}
+
+/**
+ * The script that installs the service for the release copy in `dir`: the core's, from that release's own
+ * node_modules, or, for a release from before the app moved to the core (a rollback across the move), the app's own
+ * scripts/install-service.sh, which then knew its name and ports itself.
+ */
+export function serviceScript(dir: string): string[] {
+  const core = path.join(dir, 'node_modules/@organon/core/scripts/install-service.sh');
+  if (existsSync(core)) return [core, dir];
+  return [path.join(dir, 'scripts/install-service.sh')];
 }
 
 /** Whether `p` is a symbolic link, even a broken one (which existsSync reports as missing). */

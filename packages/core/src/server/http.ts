@@ -14,6 +14,7 @@ import { readFile } from 'node:fs/promises';
 import http from 'node:http';
 import https from 'node:https';
 import type { Socket } from 'node:net';
+import type { Duplex } from 'node:stream';
 import path from 'node:path';
 import type { App } from './app.ts';
 import { socketOwner } from './peer.ts';
@@ -38,6 +39,12 @@ export type Route = (
 export interface ServeOptions {
   /** The app's own routes under /api/. Answers and returns true, or returns false for the core's 404. */
   api?: Route;
+  /**
+   * A WebSocket (or any upgrade) the app takes, after the core's checks: the exact Host, an Origin of the app's own
+   * (a browser always sends one on a WebSocket, so none is refused), and not cross-site. Takes the socket and returns
+   * true, or returns false for a 403. Galen's and Aristotle's terminal drawer (/api/terminal) comes through here.
+   */
+  upgrade?: (req: http.IncomingMessage, socket: Duplex, head: Buffer, route: string) => boolean;
   /** The MCP endpoint at /mcp (mcp.ts createMcpHandler). */
   mcp?: (req: http.IncomingMessage, res: http.ServerResponse) => Promise<void>;
   /** What /api/state carries besides the build and the warnings. */
@@ -160,6 +167,19 @@ export async function serve(app: App, options: ServeOptions = {}): Promise<Servi
     res.writeHead(200, { 'Content-Type': type, 'Cache-Control': cache }).end(body);
   }
 
+  /** An upgrade: only from the app's own pages, and only to what the app takes; anything else gets a 403. */
+  function upgrade(req: http.IncomingMessage, socket: Duplex, head: Buffer) {
+    try {
+      const url = new URL(req.url ?? '/', 'http://localhost');
+      const own = localHost(req.headers.host) && Boolean(req.headers.origin) && localOrigin(req.headers.origin ?? '') && sameSite(req);
+      if (own && options.upgrade?.(req, socket, head, url.pathname)) return;
+    } catch (err) {
+      console.error(err);
+    }
+    socket.write('HTTP/1.1 403 Forbidden\r\n\r\n');
+    socket.destroy();
+  }
+
   const localHost = (host: string | undefined) => host !== undefined && app.allowedHosts.has(host.toLowerCase());
   const localOrigin = (origin: string) => app.allowedOrigins.has(origin.toLowerCase());
 
@@ -171,8 +191,8 @@ export async function serve(app: App, options: ServeOptions = {}): Promise<Servi
   }
 
   // HTTP always (on 127.0.0.1, and on ::1 when the machine has it), HTTPS too when there is a certificate.
-  const server = http.createServer(handle).on('connection', refuseOtherUsers);
-  const server6 = http.createServer(handle).on('connection', refuseOtherUsers);
+  const server = http.createServer(handle).on('connection', refuseOtherUsers).on('upgrade', upgrade);
+  const server6 = http.createServer(handle).on('connection', refuseOtherUsers).on('upgrade', upgrade);
   const tls = app.tlsEnabled
     ? https
         .createServer(
@@ -180,6 +200,7 @@ export async function serve(app: App, options: ServeOptions = {}): Promise<Servi
           handle,
         )
         .on('connection', refuseOtherUsers)
+        .on('upgrade', upgrade)
     : undefined;
 
   const portInUse = (port: number) => (err: NodeJS.ErrnoException) => {
