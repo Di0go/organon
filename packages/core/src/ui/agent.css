@@ -1,0 +1,219 @@
+/* The agent's parts of the frame, after shell.css and dash.css: the agent's drawer (TerminalDrawer), the message box
+   at the foot of a page (Composer), the bar of an agent waiting on a question, and the chat beside a page (Page),
+   hidden in focus mode too.
+
+   From Galen's ui/src/styles/shell.css (the drawer, the message box, the asking bar) and dash.css (the chat beside a
+   page). */
+
+/* The agent's drawer, docked above the status line: an agent's terminal, or the API agent's conversation. */
+.drawer {
+  position: fixed;
+  z-index: 30;
+  left: var(--ribbon-w);
+  right: 0;
+  bottom: var(--status-h);
+  display: flex;
+  flex-direction: column;
+  background: var(--b0);
+  border-top: 1px solid var(--rule-strong);
+  box-shadow: 0 -14px 30px -20px rgb(0 0 0 / 0.35);
+  transform: translateY(calc(100% + var(--status-h)));
+  visibility: hidden;
+  transition:
+    transform 0.2s var(--ease),
+    visibility 0s linear 0.2s;
+}
+
+.drawer.open {
+  transform: none;
+  visibility: visible;
+  transition: transform 0.2s var(--ease);
+}
+
+.drawer-grip {
+  height: 10px;
+  margin-top: -5px;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 2px 14px 8px;
+  font-size: 0.85rem;
+}
+
+.drawer-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.drawer-title .run-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+
+.drawer-title .run-dot.on {
+  background: var(--solid);
+}
+
+.drawer-title .run-dot.off {
+  background: var(--shaky);
+}
+
+.drawer-state {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.drawer-actions {
+  display: flex;
+  flex: none;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.drawer-actions a.ghost {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.xterm-host {
+  flex: 1;
+  min-height: 0;
+  padding: 0 0 6px 14px;
+}
+
+.xterm-host .xterm {
+  height: 100%;
+}
+
+@media (max-width: 960px) {
+  .drawer {
+    left: 0;
+  }
+}
+
+/* The message box at the foot of a page. */
+.composer {
+  position: sticky;
+  bottom: calc(var(--status-h) + var(--drawer-space));
+  z-index: 5;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 16px 0 18px;
+  background: linear-gradient(to bottom, transparent, var(--b0) 20px);
+}
+
+.composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.composer textarea {
+  flex: 1;
+  min-height: 42px;
+  max-height: 160px;
+  resize: none;
+  font-size: 0.92rem;
+  background: var(--b1);
+  border-color: var(--rule);
+  border-radius: var(--radius-lg);
+}
+
+.composer .primary {
+  height: 42px;
+  border-radius: var(--radius-lg);
+}
+
+.composer-off {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--faint);
+}
+
+/* An agent waiting on a question in the terminal: a bar above the message box that opens it. */
+.asking {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 14px;
+  border: 1px solid var(--acc-line);
+  border-radius: var(--radius);
+  background: var(--acc-soft);
+  color: var(--fg);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* A page with the chat beside it (Page.svelte) */
+.with-chat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.with-chat.open {
+  grid-template-columns: minmax(0, 1fr) var(--side-w, 340px);
+}
+
+/* The side panel never scrolls: its content does, so the chat's box stays at the foot. */
+.side {
+  position: sticky;
+  top: var(--tabs-h);
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--tabs-h) - var(--status-h) - var(--drawer-space, 0px));
+  background: var(--b1);
+  border-left: 1px solid var(--rule);
+}
+
+.side-scrim {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .with-chat.open {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    position: fixed;
+    z-index: 38;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    height: auto;
+    width: min(360px, 92vw);
+    box-shadow: var(--shadow);
+  }
+
+  .side-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 37;
+    background: rgb(0 0 0 / 0.3);
+  }
+}
+
+/* Focus mode hides the chat beside a page too (Page.svelte). */
+html.focus .with-chat .side,
+html.focus .with-chat .side-scrim,
+html.focus .chat-open {
+  display: none;
+}
+
+html.focus .with-chat.open {
+  grid-template-columns: minmax(0, 1fr);
+}

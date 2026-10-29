@@ -14,6 +14,12 @@ test("The plugin takes Vite's port and proxy from app.json, WebSockets on /api i
     server: { port: number; proxy: Record<string, string | { target: string; ws?: boolean }> };
   };
   assert.deepEqual(config.optimizeDeps.exclude, ['@organon/core']);
+  // What only the core's own interface imports (the drawer's xterm) is pre-bundled through the core, in Vite's nested
+  // form: excluded with the core, it was found with the page already loading (504 Outdated Optimize Dep).
+  assert.deepEqual((config.optimizeDeps as { include?: string[] }).include, [
+    '@organon/core > @xterm/xterm',
+    '@organon/core > @xterm/addon-fit',
+  ]);
   // The dependency scan treats the core as external: crawling its .svelte files it failed on their own relative
   // imports ("Could not resolve './LookPicker.svelte'"), gave up pre-bundling, and the app's dependencies were found
   // with the page already loading (504 Outdated Optimize Dep, a reload). Found by Galen's dev test.

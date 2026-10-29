@@ -13,6 +13,7 @@
   //
   // From Galen's App.svelte, the shell without its pages.
   import type { Snippet } from 'svelte';
+  import { drafts } from './drafts.ts';
   import { focus, searchBox } from './frame.svelte.ts';
   import { words } from './words.ts';
 
@@ -26,7 +27,7 @@
     status,
     children,
   }: {
-    /** The app's name, lowercase: the key focus mode is remembered under ("argus.focus"). */
+    /** The app's name, lowercase: the key focus mode is remembered under ("argus.focus"), and the drafts ("argus.draft."). */
     app: string;
     /** Where the brand in the small screen's bar goes. */
     home?: string;
@@ -44,6 +45,9 @@
 
   // svelte-ignore state_referenced_locally
   focus.init(`${app}.focus`);
+  // What is typed and not sent yet is kept under the app's name too (drafts.ts).
+  // svelte-ignore state_referenced_locally
+  drafts.init(app);
 
   function onKey(e: KeyboardEvent) {
     if (e.key === 'Escape' && railOpen) railOpen = false;

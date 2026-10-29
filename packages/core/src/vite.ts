@@ -36,9 +36,12 @@ export function organon({ root }: { root?: string } = {}): Plugin {
     // And the dependency scan at start treats it as external: crawling the core's .svelte files it failed on their
     // relative imports (a Ribbon importing ./LookPicker.svelte), gave up pre-bundling, and the app's own dependencies
     // were found with the page already loading: 504 "Outdated Optimize Dep", then a reload (Galen's dev test).
+    // What only the core's interface imports (the drawer's xterm) is pre-bundled through it, in Vite's nested form:
+    // left out with the core, it would be found with the page already loading, the same 504.
     config: () => ({
       optimizeDeps: {
         exclude: ['@organon/core'],
+        include: ['@organon/core > @xterm/xterm', '@organon/core > @xterm/addon-fit'],
         rolldownOptions: {
           plugins: [
             { name: 'organon-external', resolveId: (id: string) => (id.startsWith('@organon/core') ? { id, external: true } : null) },
