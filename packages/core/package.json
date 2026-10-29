@@ -1,6 +1,6 @@
 {
   "name": "@organon/core",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "The shared core of the saga's apps: the server without its routes, live events, MCP and its bridge, control, release, .test and systemd, settings, storage, entities; design tokens, fonts, the look, the frame (ribbon, tabs, status line, search, menus, hover card), formats and charts.",
   "license": "MIT",
   "type": "module",

@@ -16,6 +16,7 @@ test("The plugin takes Vite's port and proxy from app.json, WebSockets on /api i
   assert.deepEqual(config.optimizeDeps.exclude, ['@organon/core']);
   assert.equal(config.server.port, app.vitePort);
   const target = `http://127.0.0.1:${app.port}`;
-  assert.deepEqual(config.server.proxy['/api'], { target, ws: true });
+  // As the short form ('/api': target) had it: the Host the dev server sees is its own.
+  assert.deepEqual(config.server.proxy['/api'], { target, changeOrigin: true, ws: true });
   assert.equal(config.server.proxy['/mcp'], target);
 });

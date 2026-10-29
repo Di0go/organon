@@ -25,7 +25,7 @@ export function organon({ root }: { root?: string } = {}): Plugin {
       port: Number(process.env[`${prefix}_VITE_PORT`] || app.ports.vite),
       strictPort: true,
       // /api carries WebSockets too: the terminal drawer's (/api/terminal) goes through Vite in dev.
-      proxy: { '/api': { target, ws: true }, '/mcp': target },
+      proxy: { '/api': { target, changeOrigin: true, ws: true }, '/mcp': target },
     };
   };
   return {

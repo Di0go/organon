@@ -3,6 +3,30 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.6.0
+
+**What an app changes:** nothing to keep working. In dev, Vite's proxy now carries WebSockets on `/api`, as the
+short form did not. Pulled by Galen's move to the core (docs/plano.md, step 2); to use what is new:
+
+- `serve({ upgrade })`: a WebSocket (or any upgrade) the app takes, after the core's checks: the exact Host, an
+  Origin of the app's own (a browser always sends one on a WebSocket, so none is refused), never cross-site. The
+  handler takes the socket and returns true; anything else gets a 403. Galen's terminal drawer (`/api/terminal`).
+- `server/method`: `createMethod({ root, section, otherAgents, prompts, tool, prompt })`, the app's skills, helpers
+  and the rules of one section of its AGENTS.md, for agents that don't load skills: the `method` tool and the skills
+  as prompts (`register(mcp, { inProcess })`), and `handed(name)` for the app's own agent in process. Aristotle's and
+  Galen's method.ts, with their words given by the app.
+- `createMcpHandler({ extend })`: more for one request's server, by `client` and `drawer` (the method, for the
+  clients that don't have the skills). **Fix:** a client over HTTP can't take the app's own name (`X-Organon-Agent:
+  <name>`), which is its agent's in process.
+- **Fix:** `release` refuses a lockfile that pins a tarball by URL with no integrity (pnpm left it out on Galen's
+  move to 0.5.1, and the release copy's frozen install refuses it), before building or stopping anything.
+- **Fix:** a rollback to a release from before the app was on the core installs the service with that release's own
+  `scripts/install-service.sh`; the core's was looked for in its node_modules, where it is not.
+- `organon()`: `/api` is proxied with `ws: true` (and `changeOrigin`, as the short form had), so the drawer works
+  through Vite in dev.
+- Tests: the bridge's cancellation (a call the client cancels gets no answer, the next one does), which nothing
+  tested.
+
 ## 0.5.1
 
 **What an app changes:** nothing. An app whose accent is red looks different, as it should:
