@@ -13,6 +13,11 @@ import type { Plugin, UserConfig } from 'vite';
 import { readAppJson } from './server/app.ts';
 
 const BOOT = new URL('../src/ui/theme-boot.js', import.meta.url);
+/**
+ * What the core's interface imports from npm (markdown.ts, maths.svelte.ts, Markdown.svelte; the drawer's xterm in
+ * tutor.svelte.ts and TerminalView.svelte), named through the core because pnpm keeps them out of the app's own reach.
+ */
+const UI_DEPENDENCIES = ['marked', 'dompurify', 'katex', 'mermaid', '@xterm/xterm', '@xterm/addon-fit'];
 
 export function organon({ root }: { root?: string } = {}): Plugin {
   const boot = () => readFileSync(BOOT, 'utf8');
@@ -36,12 +41,13 @@ export function organon({ root }: { root?: string } = {}): Plugin {
     // And the dependency scan at start treats it as external: crawling the core's .svelte files it failed on their
     // relative imports (a Ribbon importing ./LookPicker.svelte), gave up pre-bundling, and the app's own dependencies
     // were found with the page already loading: 504 "Outdated Optimize Dep", then a reload (Galen's dev test).
-    // What only the core's interface imports (the drawer's xterm) is pre-bundled through it, in Vite's nested form:
-    // left out with the core, it would be found with the page already loading, the same 504.
+    // Left out of the scan, what the core's interface imports from npm is never found by it either, nor are the
+    // lazy imports (KaTeX, Mermaid, xterm) it would not follow anyway: they are pre-bundled from the start, through
+    // the core, or the first page with Markdown, a diagram or the drawer would find them late, with the same 504.
     config: () => ({
       optimizeDeps: {
         exclude: ['@organon/core'],
-        include: ['@organon/core > @xterm/xterm', '@organon/core > @xterm/addon-fit'],
+        include: UI_DEPENDENCIES.map((d) => `@organon/core > ${d}`),
         rolldownOptions: {
           plugins: [
             { name: 'organon-external', resolveId: (id: string) => (id.startsWith('@organon/core') ? { id, external: true } : null) },

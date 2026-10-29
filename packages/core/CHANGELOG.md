@@ -3,11 +3,34 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
-## Unreleased (the drawer and the chat)
+## Unreleased
 
-**What an app changes:** nothing to keep working. An app on the core with node-pty in its dependencies already keeps
-it; any other adds `node-pty` to pnpm's `onlyBuiltDependencies` (it ships prebuilt binaries, and builds when there are
-none). To use what is new (Galen's and Aristotle's own copies become shims):
+**What an app changes:** nothing to keep working. To use the core's Markdown instead of its own copy (Galen's and
+Aristotle's `markdown.ts`, `tables.ts`, `maths.svelte.ts`, `visible.ts`, `Markdown.svelte`, `Lightbox.svelte`,
+`prose.css`), each becomes a shim:
+
+- `ui/markdown`: `renderMarkdown`, `renderInline`, and `createMarkdown({ extensions, tablePieces, keep })` for an app
+  with syntax of its own (Aristotle's `[[concept]]` links: the extension, and its pattern so a table cell keeps it
+  whole); `escapeHtml` and `startAt` for writing those extensions. `ui/tables`: `escapeTablePipes`.
+- `ui/Markdown.svelte`: `source`, `inline`, and the app's `markdown` (its renderer), `links` (href in, the app's href
+  or undefined out: Galen's links between notes), `look` (its theme, so diagrams follow it), `enhance` (its own work
+  on the rendered page) and `ownFigures` (a selector its own live figures answer to).
+- `ui/Lightbox.svelte`: `figure` (the app's own figures first: Aristotle's plate, its kit left alone).
+- `ui/maths` (KaTeX, loaded after the first paint), `ui/visible`, `ui/prose.css`, `ui/katex.css`.
+- Mermaid asks for a KaTeX of its own; keep `"mermaid>katex": "^0.19.0"` in the app's `pnpm.overrides`, which only
+  count at the root of an install, so the core can't carry it.
+
+- **Fix:** a table cell's `` `a|b` ``, `$|x|$` and `{{term|definition}}` no longer split the row (Aristotle's
+  3516991, which Galen did not have).
+- **Fix:** a look changed while a Mermaid diagram was first drawn left its placeholder for good; it is drawn in the
+  new look. Found by the example's dev test.
+- `organon()` puts the core's interface's dependencies (`marked`, `dompurify`, `katex`, `mermaid`) in Vite's
+  pre-bundling, through the core: left to the dev server, Mermaid's CommonJS `dayjs` stops it.
+
+**The agent's drawer and the chat beside a page.** Nothing to change to keep working either. An app on the core with
+node-pty in its dependencies already keeps it; any other adds `node-pty` to pnpm's `onlyBuiltDependencies` (it ships
+prebuilt binaries, and builds when there are none). To use what is new (Galen's and Aristotle's own copies become
+shims):
 
 - `server/agents` (`createAgents({ app, settings })`, `agentCommand`), `server/terminal` (`Terminal`), `server/tutor`
   (`new Tutor({ app, settings, api })`, whose `upgrade` goes to `serve({ upgrade })` and takes `/api/terminal`) and
@@ -24,7 +47,7 @@ none). To use what is new (Galen's and Aristotle's own copies become shims):
   `ui/TerminalView.svelte`, `ui/TutorConversation.svelte`, `ui/Composer.svelte`, `ui/ChatPanel.svelte`,
   `ui/Page.svelte` and `ui/agent.css` (after shell.css and dash.css). Their words are in words.ts; an app says its own
   with `setWords` where they name what it keeps. Frame keeps drafts under the app's name.
-- `organon()` pre-bundles the drawer's xterm through the core, which only the core's interface imports.
+- `organon()` pre-bundles the drawer's xterm through the core too (`@xterm/xterm`, `@xterm/addon-fit`).
 
 ## 0.6.1
 

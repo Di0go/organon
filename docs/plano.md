@@ -410,6 +410,8 @@ vindo do canal no GitHub.
 - **Dependências CommonJS na UI do núcleo.** O plugin `organon()` tira o núcleo da pré-optimização do Vite. Quando a
   UI do núcleo trouxer `marked`, `DOMPurify` ou `KaTeX`, o Vite pode precisar delas pré-optimizadas e a dev partir
   com o build verde, que é a mesma classe de defeito da 0.1.0. Ao extrair o `Markdown`: `optimizeDeps.include` dessas
-  dependências no plugin, e o teste de dev da app de exemplo a usar o componente.
+  dependências no plugin, e o teste de dev da app de exemplo a usar o componente. **Feito** ao extrair o `Markdown`: o plugin
+  inclui `@organon/core > marked`, `dompurify`, `katex` e `mermaid`, e o teste de dev do exemplo desenha uma página
+  com eles. Sem o `include`, medido: o Mermaid parte na dev (o `dayjs`, CommonJS, servido sem pré-optimização).
 - **`releases/` é a fonte dos *rollbacks*.** Os *tarballs* estão commitados no Organon; apagar um parte o rollback de
   uma app fixada nele. Com o GitHub, os *releases* de lá passam a ser a cópia de referência.

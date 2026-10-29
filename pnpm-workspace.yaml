@@ -4,3 +4,8 @@ packages:
   - packages/*
 onlyBuiltDependencies:
   - node-pty
+# Mermaid asks for a KaTeX of its own (0.16 or 0.18); it is given the core's, so there is one copy in a bundle and
+# `pnpm audit` is clean. An override only counts at the root of an install: each app keeps the same line in its own
+# package.json (Galen's and Aristotle's have it).
+overrides:
+  mermaid>katex: ^0.19.0

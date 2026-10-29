@@ -1,0 +1,3 @@
+/* KaTeX's own styles and fonts, for the maths markdown.ts renders: imported once by the app, next to prose.css, so an
+   app does not need KaTeX among its own dependencies to style it. */
+@import 'katex/dist/katex.min.css';

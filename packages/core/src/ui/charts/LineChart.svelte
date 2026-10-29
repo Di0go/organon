@@ -18,7 +18,7 @@
   // point under the pointer. Arrow keys step through the points.
   //
   // From Galen's ui/src/lib/charts/LineChart.svelte, with x a number (it was a day) and its labels the app's.
-  import { niceRange, niceTicks } from './scale.ts';
+  import { niceRange, niceTicks, tickAnchor } from './scale.ts';
 
   let {
     series,
@@ -182,13 +182,8 @@
       <line class="grid" x1={M.left} x2={M.left + plotW} y1={py(t)} y2={py(t)} />
       <text class="tick" x={M.left - 8} y={py(t)} text-anchor="end" dominant-baseline="central">{format(t)}</text>
     {/each}
-    {#each xTicks as x, n (x)}
-      <text
-        class="tick"
-        x={px(x)}
-        y={height - 8}
-        text-anchor={!ticks && n === 0 ? 'start' : !ticks && n === xTicks.length - 1 ? 'end' : 'middle'}>{formatX(x)}</text
-      >
+    {#each xTicks as x (x)}
+      <text class="tick" x={px(x)} y={height - 8} text-anchor={tickAnchor(x, from, to)}>{formatX(x)}</text>
     {/each}
     {#if reference}
       <line class="reference" x1={M.left} x2={M.left + plotW} y1={py(reference.value)} y2={py(reference.value)} />

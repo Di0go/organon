@@ -9,7 +9,7 @@ import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { type Browser, chromium } from 'playwright-core';
-import { type Running, start } from './helpers.ts';
+import { checkMarkdown, type Running, start } from './helpers.ts';
 
 const CHROMIUM = [process.env.MINIMAL_TEST_CHROMIUM, '/usr/bin/chromium', chromium.executablePath()].find((p): p is string =>
   Boolean(p && existsSync(p)),
@@ -54,6 +54,32 @@ test("The core's hover card: pointing at something with a tip shows it", { skip:
   const card = page.getByRole('tooltip');
   await card.waitFor();
   assert.match(await card.innerText(), /The accent\s+Filled with the accent/);
+  await page.close();
+});
+
+test("The core's Markdown: a table that keeps its cells, maths, a diagram, links into the app, and the lightbox", {
+  skip: !CHROMIUM,
+}, async () => {
+  const page = await browser!.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
+  await page.goto(app.base);
+  await checkMarkdown(page);
+  // A click on the diagram shows it large; Escape closes it.
+  await page.getByTestId('markdown').locator('figure.diagram svg').click();
+  await page.getByRole('dialog').locator('svg.lightbox-content').waitFor();
+  await page.keyboard.press('Escape');
+  await page.getByRole('dialog').waitFor({ state: 'detached' });
+  // The diagram is drawn again in the new look's colours when the look changes.
+  const drawnIn = () => page.getByTestId('markdown').locator('figure.diagram').getAttribute('data-look');
+  assert.equal(await drawnIn(), 'dark|violet');
+  await page.getByRole('button', { name: 'Light' }).click();
+  await page.waitForFunction(() => document.querySelector('figure.diagram')?.getAttribute('data-look') === 'light|violet');
+  // The link to a note opens it in the app.
+  await page.getByRole('link', { name: 'the first note' }).click();
+  assert.equal(await page.evaluate(() => location.hash), '#/notes/0');
+  assert.deepEqual(errors, []);
   await page.close();
 });
 

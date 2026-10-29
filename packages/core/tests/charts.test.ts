@@ -2,7 +2,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { dayX, niceRange, niceTicks, timeTicks } from '../src/ui/charts/scale.ts';
+import { dayX, niceRange, niceTicks, tickAnchor, timeTicks } from '../src/ui/charts/scale.ts';
 import { asDate, dayKey, formatDay, plural } from '../src/ui/format.ts';
 import { EN, PT, setWords } from '../src/ui/words.ts';
 
@@ -51,4 +51,12 @@ test('Search marks the words typed in text that is escaped piece by piece: nothi
   assert.equal(markWords('a<b', 'lt'), 'a&lt;b');
   assert.equal(markWords('Sala "TV"', 'tv sala'), '<mark>Sala</mark> &quot;<mark>TV</mark>&quot;');
   assert.equal(markWords('a.b', '.b'), 'a<mark>.b</mark>');
+});
+
+test('tickAnchor: a tick at either end of the axis is anchored inside it, whoever chose the ticks', () => {
+  // Galen's day ticks (whole days from the first to the last) fall on `from` and `to`: their labels must not hang
+  // off the chart, as they did when only the default ticks were anchored at the ends.
+  assert.equal(tickAnchor(10, 10, 50), 'start');
+  assert.equal(tickAnchor(50, 10, 50), 'end');
+  assert.equal(tickAnchor(30, 10, 50), 'middle');
 });
