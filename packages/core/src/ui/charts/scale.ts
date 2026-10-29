@@ -46,6 +46,13 @@ export function timeTicks(from: number, to: number, count = 5): number[] {
   return out;
 }
 
+/** How an x tick's label sits: inside the axis at either end, centred on its tick elsewhere. */
+export function tickAnchor(x: number, from: number, to: number): 'start' | 'end' | 'middle' {
+  if (x <= from) return 'start';
+  if (x >= to) return 'end';
+  return 'middle';
+}
+
 /** "YYYY-MM-DD" (local) to its noon in ms: a day as a chart's x. */
 export function dayX(day: string): number {
   const [y = 0, m = 1, d = 1] = day.split('-').map(Number);
