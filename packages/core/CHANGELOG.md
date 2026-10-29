@@ -3,6 +3,29 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## Unreleased (the drawer and the chat)
+
+**What an app changes:** nothing to keep working. An app on the core with node-pty in its dependencies already keeps
+it; any other adds `node-pty` to pnpm's `onlyBuiltDependencies` (it ships prebuilt binaries, and builds when there are
+none). To use what is new (Galen's and Aristotle's own copies become shims):
+
+- `server/agents` (`createAgents({ app, settings })`, `agentCommand`), `server/terminal` (`Terminal`), `server/tutor`
+  (`new Tutor({ app, settings, api })`, whose `upgrade` goes to `serve({ upgrade })` and takes `/api/terminal`) and
+  `server/tutor-api` (`ApiTutor`: the app's own agent on a model API, with the app's MCP server in process, its words
+  for what it is and where, `summarize`, `activity`, `toolTimeoutMs`, `blind`, `words`). <PREFIX>_CLAUDE_CMD,
+  _TERMINAL_QUIET_MS and _DRAWER as in the apps.
+- `server/oneshot` (`createOneshot({ app, settings })`: <PREFIX>_ONESHOT_CMD, _ONESHOT_MODEL, _CLAUDE_CWD),
+  `server/chat` (`Chats.load({ app, store, oneshot, system, tools?, person? })`, `onEvent`, `chatRoutes(chats, {
+  context })`), `server/llm` (with `identity` for OpenRouter), `server/web` (`agent` in the user agent),
+  `server/slug`, `server/backup` (`new Backup({ app, warnings, describeChanges })`).
+- `shared/agents` adds TutorMessage, TutorClientMessage and TutorEntry; `shared/chat` has ChatMessage, ChatThread and
+  ChatEvent.
+- `ui/tutor`, `ui/chats` (ChatStore, for the app's feed), `ui/drafts`, `ui/TerminalDrawer.svelte`,
+  `ui/TerminalView.svelte`, `ui/TutorConversation.svelte`, `ui/Composer.svelte`, `ui/ChatPanel.svelte`,
+  `ui/Page.svelte` and `ui/agent.css` (after shell.css and dash.css). Their words are in words.ts; an app says its own
+  with `setWords` where they name what it keeps. Frame keeps drafts under the app's name.
+- `organon()` pre-bundles the drawer's xterm through the core, which only the core's interface imports.
+
 ## 0.6.1
 
 Nothing to change in an app.
