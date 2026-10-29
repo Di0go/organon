@@ -373,6 +373,44 @@ foi feita com a palavra do Diogo, e o rollback experimentado; a migração não 
 > de backup. A release só com a palavra
 > do Diogo. Feito quando: o critério do passo 2 do plano, corrido e medido.
 
+**Como correu (2026-10-29), para o Aristotle.** O Galen migrou em 23 commits na branch `organon`, sobre a 0.5.1, a
+0.6.0, a 0.6.1 e a 0.7.0, todas puxadas por ele. O que correu diferente do plano, e o que o Aristotle vai encontrar:
+
+- **O núcleo não chegava, nem de longe.** A 0.5.1 tinha o que o Argus pedira; o Galen puxou três versões. A 0.6.0
+  trouxe o `upgrade` do `serve()` (o WebSocket do *drawer*), `createMethod` e o `extend` do MCP por cliente, e a
+  release a recusar pinos sem integridade e a fazer rollback para antes do núcleo. A 0.6.1 trouxe o scan de dependências
+  do Vite (o teste de dev do Galen apanhou o 504). A 0.7.0 trouxe o *drawer*, o chat, o `Markdown` com as tabelas, o
+  `slug`, o `llm`, o `web`, o `backup`, o `Settings` (`settingsRoutes`, `AgentSettings`), os *gates* e o Stop hook. O
+  Aristotle deve encontrar quase tudo feito: as palavras dele entram por `setWords` (`settingsAgent: 'tutor'`,
+  `settingsLede`, `settingsSwitch`, `settingsHelper*`, `settingsChat*`, `settingsVision`, o `api` de `settingsAbout`),
+  e a sintaxe dele (`[[conceito]]`) por `createMarkdown({ extensions, tablePieces })`.
+- **Os pontos de extensão que foram precisos:** `serve({ api, upgrade, state, stop })`; `createMcpHandler({ extend })`
+  e `createMethod({ section, otherAgents, prompts })`; `Chats.load({ system, tools, person })` e
+  `chatRoutes({ context })`; `ApiTutor` com as palavras, `summarize`, `activity` e `blind` da app; `Backup({
+  describeChanges })`; o `Markdown` com `links`, `look`, `enhance` e `ownFigures`, o `Lightbox` com `figure`, o
+  `HoverCard` com `inline`; o `LineChart` com `left`; `AgentSettings` com `after(view, set)`; `settingsRoutes({ view,
+  identity })`; `runGates(root, gates)` e `runStopHook(root, { zones, generate })`. Os gráficos do Galen ficaram como
+  adaptadores finos (o dia passa a número com `dayX`), porque as páginas os chamam com dias.
+- **A ponte serve sessões vivas.** O `.mcp.json` da checkout aponta para a ponte, e sessões do Claude abertas antes da
+  migração mandam os cabeçalhos antigos (`X-Galen-*`): o servidor lê os dois (`X-Organon-*` e o da app). O Aristotle
+  vai ter o mesmo com `X-Aristotle-*`.
+- **O diferencial que conta é o da UI.** Além de um por módulo (`scripts/proofs/`: store, settings, config, scripts,
+  bridge), dois apanham o que os de módulo não vêem: `differential.ts`, o servidor de ponta a ponta (67 pedidos, os 133
+  ficheiros escritos e o modo do `settings.json`, a `main` e a branch lado a lado sobre a mesma cópia de `.dev/data`), e
+  `ui-differential.ts`, o Chromium headless sobre as 28 páginas em todos os aspectos e em dois ecrãs, mais o que se abre
+  (a pesquisa, o menu, o aspecto, o chat ao lado, o *drawer*, a API no Settings). Cada diferença permitida tem a razão
+  escrita no guião; uma excepção por aspecto só pode mudar pixels e o ícone, nunca o texto. Copiar os dois para o
+  Aristotle é o primeiro passo.
+- **A memória da máquina é o limite, não o tempo.** A primeira sessão foi morta pelo `systemd-oomd` com o Playwright,
+  o Vite e dois subagentes ao mesmo tempo, com outras sessões a correr. Corre uma coisa pesada de cada vez. Com a
+  máquina carregada (load 20), os testes do terminal (5 s) e o teste de dev falham por tempo e passam sozinhos: antes de
+  procurar um defeito, corre-os sozinhos.
+- **Um commit por módulo, com `Docs: none -- …`.** Os docs mudaram juntos, no último commit da série; os commits de
+  módulo levam a razão, para o teste dos docs. Cada commit foi verificado a construir.
+- **A release espera pelo push.** A release recusa um pino `file:` (0.4.1), por isso o Galen só vai ao vivo depois de a
+  versão estar no GitHub (`pnpm publish:release`). Na dev, um *tarball* da árvore de trabalho num sítio descartável
+  (`scripts/pack.ts`, `pack(dir, { overwrite: true })`) serve para iterar sem gastar versões.
+
 ### Passo 3: o Aristotle
 
 O último porque é o mais antigo e o mais usado, o público com mais gente a ver, e o que mais muda à vista: os gráficos
