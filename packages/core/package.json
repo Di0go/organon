@@ -61,6 +61,14 @@
       "types": "./dist/server/method.d.ts",
       "default": "./dist/server/method.js"
     },
+    "./server/gates": {
+      "types": "./dist/server/gates.d.ts",
+      "default": "./dist/server/gates.js"
+    },
+    "./server/stop-hook": {
+      "types": "./dist/server/stop-hook.d.ts",
+      "default": "./dist/server/stop-hook.js"
+    },
     "./server/bridge": {
       "types": "./dist/server/bridge.d.ts",
       "default": "./dist/server/bridge.js"
