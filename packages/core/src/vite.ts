@@ -33,7 +33,20 @@ export function organon({ root }: { root?: string } = {}): Plugin {
     // The core's interface comes as source (.svelte, .svelte.ts). Vite's dependency pre-bundling compiles a
     // .svelte.ts without stripping its types and stops the dev server ("Unexpected token" at `type Accent`); left out
     // of it, the core goes through the same transforms as the app's own files, as it does in the build.
-    config: () => ({ optimizeDeps: { exclude: ['@organon/core'] }, server: server() }),
+    // And the dependency scan at start treats it as external: crawling the core's .svelte files it failed on their
+    // relative imports (a Ribbon importing ./LookPicker.svelte), gave up pre-bundling, and the app's own dependencies
+    // were found with the page already loading: 504 "Outdated Optimize Dep", then a reload (Galen's dev test).
+    config: () => ({
+      optimizeDeps: {
+        exclude: ['@organon/core'],
+        rolldownOptions: {
+          plugins: [
+            { name: 'organon-external', resolveId: (id: string) => (id.startsWith('@organon/core') ? { id, external: true } : null) },
+          ],
+        },
+      },
+      server: server(),
+    }),
     configureServer(server) {
       server.middlewares.use('/theme-boot.js', (_req, res) => {
         res.setHeader('Content-Type', 'text/javascript; charset=utf-8');
