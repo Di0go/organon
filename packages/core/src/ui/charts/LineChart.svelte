@@ -36,6 +36,7 @@
     ticks,
     height = 220,
     gap = Number.POSITIVE_INFINITY,
+    left = 44,
   }: {
     series: LineSeries[];
     label: string;
@@ -61,9 +62,11 @@
     height?: number;
     /** A gap between points wider than this breaks the line: nothing was there in between. */
     gap?: number;
+    /** Room on the left for the value labels (44 px; Galen's short numbers take 40). */
+    left?: number;
   } = $props();
 
-  const M = { top: 16, right: 52, bottom: 30, left: 44 };
+  const M = $derived({ top: 16, right: 52, bottom: 30, left });
   const plotH = $derived(height - M.top - M.bottom);
   const TOOLTIP_W = 170;
 
