@@ -51,9 +51,10 @@ source, served by the `organon()` Vite plugin.
 | **Entities** | `shared/entities` | An app's things as a graph: find by any name, walk the links, search. |
 | **The frame** | `ui/Frame`, `ui/Ribbon`, `ui/TabBar`, `ui/StatusLine`, `ui/Search`, `ui/ContextMenu`, `ui/HoverCard` | The page's surroundings, with the app's places, tab titles, search, menu items and cards plugged in. |
 | **Styles and words** | `ui/fonts.css`, `ui/tokens.css`, `ui/base.css`, `ui/shell.css`, `ui/dash.css`, `ui/words` | Inter and JetBrains Mono, colour and type in light and dark, the shared pieces, in English or Portuguese. |
+| **Markdown** | `ui/markdown`, `ui/Markdown.svelte`, `ui/Lightbox.svelte`, `ui/maths`, `ui/prose.css`, `ui/katex.css` | Markdown sanitised, with maths, Mermaid diagrams, callouts, animated drawings and a lightbox; the app's own syntax and links plugged in. |
 | **Charts** | `ui/charts/*` | Lines, columns, stacked columns, and every chart as a table, in series that stay apart for colour-blind eyes. |
 | **The look** | `ui/theme`, `ui/LookPicker.svelte` | Light or dark, and the accent, set before the first paint. |
-| **Vite** | `vite` | `organon()`: serves the look's boot script, the dev port and proxy from `app.json`, and keeps the core's source out of pre-bundling. |
+| **Vite** | `vite` | `organon()`: serves the look's boot script, the dev port and proxy from `app.json`, and keeps the core's source out of pre-bundling, its interface's dependencies in it. |
 
 ## Use it
 

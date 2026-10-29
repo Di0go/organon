@@ -1,12 +1,14 @@
 <script lang="ts">
   // The core's frame around two pages: Home (the app's own motto, the core's look picker, who runs the agent through
-  // the core's settings) and Notes (live over the core's event stream, searched by the core's palette, charted by its
-  // columns). Each extension point gets one thing of the app's.
+  // the core's settings, the core's Markdown with the app's links to notes) and Notes (live over the core's event
+  // stream, searched by the core's palette, charted by its columns). Each extension point gets one thing of the app's.
   import type { Place } from '@organon/core/ui/Ribbon.svelte';
   import Columns from '@organon/core/ui/charts/Columns.svelte';
   import ContextMenu from '@organon/core/ui/ContextMenu.svelte';
   import Frame from '@organon/core/ui/Frame.svelte';
   import HoverCard from '@organon/core/ui/HoverCard.svelte';
+  import Lightbox from '@organon/core/ui/Lightbox.svelte';
+  import Markdown from '@organon/core/ui/Markdown.svelte';
   import LookPicker from '@organon/core/ui/LookPicker.svelte';
   import Ribbon from '@organon/core/ui/Ribbon.svelte';
   import Search from '@organon/core/ui/Search.svelte';
@@ -16,6 +18,30 @@
   import { theme } from './theme.svelte.ts';
 
   type View = { tutor: string; agents: { id: string; name: string }[]; motto: string };
+
+  // Everything the core's Markdown does, small: a table whose cells hold a "|" of their own, maths, a diagram.
+  const SAMPLE = [
+    '## On the core',
+    '',
+    '| Code | Maths | Term |',
+    '|---|---|---|',
+    '| `a|b` | $|x|$ | {{pipe|a bar that is not a border}} |',
+    '',
+    '$$\\int_0^1 x\\,dx = \\tfrac{1}{2}$$',
+    '',
+    '```mermaid',
+    'graph LR',
+    '  A[Note] --> B[Page]',
+    '```',
+    '',
+    'Open [the first note](notes/0.md) or [the site](https://example.org).',
+  ].join('\n');
+
+  /** A link to notes/N.md opens that note; the rest are left as written. */
+  function links(href: string): string | undefined {
+    const n = /^notes\/(\d+)\.md$/.exec(href)?.[1];
+    return n === undefined ? undefined : `#/notes/${n}`;
+  }
 
   const HOME = 'M3.5 9.5 10 4l6.5 5.5M5.5 8v8.5h9V8M8.5 16.5v-4.5h3v4.5';
   const NOTE = 'M5.5 3.5h8a1 1 0 0 1 1 1v12h-8a1 1 0 0 1-1-1zM5.5 13.5h9M8.5 7h3';
@@ -96,6 +122,7 @@
         </p>
       {/if}
       {#if problem}<p role="alert">{problem}</p>{/if}
+      <section class="band" data-testid="markdown"><Markdown source={SAMPLE} look={theme} {links} /></section>
     </div>
   {:else}
     <div class="page">
@@ -131,6 +158,7 @@
 </Frame>
 
 <HoverCard />
+<Lightbox />
 <Search
   kinds={{ note: 'Note' }}
   search={(q) =>
