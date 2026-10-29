@@ -18,6 +18,10 @@
       "types": "./dist/server/settings.d.ts",
       "default": "./dist/server/settings.js"
     },
+    "./server/settings-routes": {
+      "types": "./dist/server/settings-routes.d.ts",
+      "default": "./dist/server/settings-routes.js"
+    },
     "./server/store": {
       "types": "./dist/server/store.d.ts",
       "default": "./dist/server/store.js"
@@ -243,6 +247,10 @@
     "./ui/Page.svelte": {
       "svelte": "./src/ui/Page.svelte",
       "default": "./src/ui/Page.svelte"
+    },
+    "./ui/AgentSettings.svelte": {
+      "svelte": "./src/ui/AgentSettings.svelte",
+      "default": "./src/ui/AgentSettings.svelte"
     },
     "./scripts/*": "./scripts/*"
   },

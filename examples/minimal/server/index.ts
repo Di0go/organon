@@ -14,6 +14,7 @@ import { createMcpHandler, defineTools, type McpOptions, json as toolJson, READ_
 import { createMethod } from '@organon/core/server/method';
 import { createOneshot } from '@organon/core/server/oneshot';
 import { createSettings, onPath, SettingsError } from '@organon/core/server/settings';
+import { settingsRoutes } from '@organon/core/server/settings-routes';
 import { createStore, isObject } from '@organon/core/server/store';
 import { Tutor } from '@organon/core/server/tutor';
 import { Warnings } from '@organon/core/server/warnings';
@@ -77,6 +78,8 @@ const chatApi = chatRoutes(chats, {
       .join('\n\n'),
 });
 
+const settingsApi = settingsRoutes(settings, { view: () => ({ ...settings.view(onPath), motto: motto() }) });
+
 await serve(app, {
   warnings,
   accent: () => settings.accent,
@@ -106,6 +109,8 @@ await serve(app, {
       }
       return json(res, 200, { ...settings.view(onPath), motto: motto() });
     }
+    // The rest of Settings (the models the API offers) through the core's routes; the two above carry the motto too.
+    if (await settingsApi(req, res, route, params)) return true;
     if (req.method === 'POST' && route === '/api/notes') {
       const { text } = ((await readJson(req)) ?? {}) as { text?: unknown };
       if (typeof text !== 'string' || !text.trim()) throw new ApiError(400, 'A note needs text');

@@ -1,9 +1,12 @@
 <script lang="ts">
-  // The core's frame around two pages: Home (the app's own motto, the core's look picker, who runs the agent through
-  // the core's settings, the core's Markdown with the app's links to notes) and Notes (live over the core's event
-  // stream, searched by the core's palette, charted by its columns, with the core's chat beside it). The core's agent
-  // drawer at the foot, opened from the status line or with Ctrl+`. Each extension point gets one thing of the app's.
+  // The core's frame around three pages: Home (the app's own motto, the core's look picker, who runs the agent through
+  // the core's settings, the core's Markdown with the app's links to notes), Notes (live over the core's event stream,
+  // searched by the core's palette, charted by its columns, with the core's chat beside it) and Settings (the core's
+  // AgentSettings, with the motto as the app's own section). The core's agent drawer at the foot, opened from the
+  // status line or with Ctrl+`. Each extension point gets one thing of the app's.
   import type { Place } from '@organon/core/ui/Ribbon.svelte';
+  import AgentSettings from '@organon/core/ui/AgentSettings.svelte';
+  import type { SettingsView } from '@organon/core/shared/agents';
   import ChatPanel from '@organon/core/ui/ChatPanel.svelte';
   import Columns from '@organon/core/ui/charts/Columns.svelte';
   import ContextMenu from '@organon/core/ui/ContextMenu.svelte';
@@ -51,6 +54,7 @@
 
   const HOME = 'M3.5 9.5 10 4l6.5 5.5M5.5 8v8.5h9V8M8.5 16.5v-4.5h3v4.5';
   const NOTE = 'M5.5 3.5h8a1 1 0 0 1 1 1v12h-8a1 1 0 0 1-1-1zM5.5 13.5h9M8.5 7h3';
+  const GEAR = 'M10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM10 2.5v2M10 15.5v2M2.5 10h2M15.5 10h2';
 
   let view = $state<View | null>(null);
   let problem = $state('');
@@ -59,12 +63,21 @@
   const page = $derived(router.route.page);
   const places = $derived<Place[]>([
     { id: 'home', label: 'Home', href: '#/', icon: HOME, on: page === 'home' },
-    { id: 'notes', label: 'Notes', href: '#/notes', icon: NOTE, on: page !== 'home', pip: notes.list.length ? 'dot' : undefined },
+    {
+      id: 'notes',
+      label: 'Notes',
+      href: '#/notes',
+      icon: NOTE,
+      on: page === 'notes' || page === 'note',
+      pip: notes.list.length ? 'dot' : undefined,
+    },
+    { id: 'settings', label: 'Settings', href: '#/settings', icon: GEAR, on: page === 'settings' },
   ]);
 
   function title(key: string): string {
     const r = router.parse(key);
     if (r.page === 'note') return notes.list[r.n] ?? `Note ${r.n + 1}`;
+    if (r.page === 'settings') return 'Settings';
     return r.page === 'notes' ? 'Notes' : 'Home';
   }
 
@@ -106,7 +119,11 @@
 <Frame app="minimal">
   {#snippet ribbon()}<Ribbon {places} look={theme} />{/snippet}
   {#snippet brand()}minimal{/snippet}
-  {#snippet tabbar()}<TabBar {tabs} {title} icon={(key) => (router.parse(key).page === 'home' ? HOME : NOTE)} />{/snippet}
+  {#snippet tabbar()}<TabBar
+      {tabs}
+      {title}
+      icon={(key) => ({ home: HOME, settings: GEAR })[router.parse(key).page as 'home'] ?? NOTE}
+    />{/snippet}
   {#snippet status()}
     <StatusLine warnings={notes.warnings}>
       <span class="st"><i class:on={notes.live.connected}></i>{notes.list.length} notes</span>
@@ -143,6 +160,22 @@
       {#if problem}<p role="alert">{problem}</p>{/if}
       <section class="band" data-testid="markdown"><Markdown source={SAMPLE} look={theme} {links} /></section>
     </div>
+  {:else if page === 'settings'}
+    <AgentSettings name="Minimal">
+      {#snippet after(v: SettingsView & { motto?: string }, set)}
+        <section class="band" aria-label="The motto">
+          <label
+            >Motto <input
+              value={v.motto ?? ''}
+              onchange={async (e) => {
+                await change({ motto: e.currentTarget.value });
+                if (view) set({ motto: view.motto });
+              }}
+            /></label
+          >
+        </section>
+      {/snippet}
+    </AgentSettings>
   {:else}
     <Page app="minimal" name="Minimal" loaded={notes.live.loaded}>
       {#snippet chat()}

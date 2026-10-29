@@ -29,12 +29,13 @@ class Notes {
 
 export const notes = new Notes();
 
-export type Route = { page: 'home' } | { page: 'notes' } | { page: 'note'; n: number };
+export type Route = { page: 'home' } | { page: 'notes' } | { page: 'note'; n: number } | { page: 'settings' };
 
 export const router = createRouter((hash): Route => {
   const [first, second] = hashParts(hash);
   if (first === 'notes' && second && /^\d+$/.test(second)) return { page: 'note', n: Number(second) };
   if (first === 'notes') return { page: 'notes' };
+  if (first === 'settings') return { page: 'settings' };
   return { page: 'home' };
 });
 

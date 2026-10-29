@@ -235,3 +235,41 @@ test("The core's drawer: opened from the status line, the agent started, typed i
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test("The core's Settings: who runs is chosen, the model API's section opens, saved through the core's routes, and the app's own section after it", {
+  skip: !CHROMIUM,
+}, async () => {
+  const page = await browser!.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(`${app.base}/#/settings`);
+  await page.getByRole('heading', { name: 'Who runs in the drawer' }).waitFor();
+  assert.equal(await page.getByRole('heading', { name: 'The model API' }).count(), 0);
+  // The app's name in the core's words, and the app's own section after Save.
+  await page.getByText("Minimal's own agent on any OpenAI-compatible API").waitFor();
+  await page.getByRole('region', { name: 'The motto' }).waitFor();
+  // Choosing the API opens its section; a provider fills in its usual address.
+  await page.getByRole('radio', { name: /A model API/ }).check();
+  await page.getByRole('heading', { name: 'The model API' }).waitFor();
+  await page.getByLabel('Provider').selectOption('ollama');
+  assert.equal(await page.getByLabel('Address').inputValue(), 'http://localhost:11434/v1');
+  await page.getByLabel('Address').fill('http://127.0.0.1:9/v1');
+  await page.getByLabel('Model', { exact: true }).fill('qwen3');
+  await page.getByRole('button', { name: 'Save' }).click();
+  // Saved, and the models asked of an API that isn't there: said, not hidden.
+  await page.getByText(/^Saved, but could not list the models/).waitFor();
+  const saved = JSON.parse(await readFile(path.join(app.stateDir, 'settings.json'), 'utf8')) as {
+    tutor: string;
+    api: { provider: string; model: string };
+  };
+  assert.equal(saved.tutor, 'api');
+  assert.deepEqual([saved.api.provider, saved.api.model], ['ollama', 'qwen3']);
+  // Back to Claude Code, for the tests after.
+  await fetch(`${app.base}/api/settings`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"tutor":"claude-code"}',
+  });
+  assert.deepEqual(errors, []);
+  await page.close();
+});
