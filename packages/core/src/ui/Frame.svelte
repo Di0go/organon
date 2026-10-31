@@ -11,6 +11,9 @@
   //     …the page…
   //   </Frame>
   //
+  // A rail (Aristotle's library) sits between the ribbon and the page when the app gives one; on a small screen the
+  // menu button slides it in, in place of the ribbon, and it is handed `close` to call when he picks something.
+  //
   // From Galen's App.svelte, the shell without its pages.
   import type { Snippet } from 'svelte';
   import { drafts } from './drafts.ts';
@@ -21,6 +24,9 @@
     app,
     home = '#/',
     ribbon,
+    rail,
+    railLabel = '',
+    busy,
     brand,
     mobile,
     tabbar,
@@ -32,6 +38,12 @@
     /** Where the brand in the small screen's bar goes. */
     home?: string;
     ribbon: Snippet;
+    /** A pane between the ribbon and the page (Aristotle's library), given `close` to slide it away on a small screen. */
+    rail?: Snippet<[close: () => void]>;
+    /** What the rail is, for screen readers ("Library"). */
+    railLabel?: string;
+    /** Whether something of the app's is open that Escape should close first, rather than leave focus mode. */
+    busy?: () => boolean;
     /** The app's mark and name, in the small screen's bar. */
     brand: Snippet;
     /** More in the small screen's bar, before search (a badge that needs him). */
@@ -44,7 +56,7 @@
   let railOpen = $state(false);
 
   // svelte-ignore state_referenced_locally
-  focus.init(`${app}.focus`);
+  focus.init(`${app}.focus`, busy);
   // What is typed and not sent yet is kept under the app's name too (drafts.ts).
   // svelte-ignore state_referenced_locally
   drafts.init(app);
@@ -58,9 +70,14 @@
 
 <div class="app">
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-  <div class="ribbon-col" class:open={railOpen} onclick={(e) => (e.target as Element).closest('a') && (railOpen = false)}>
+  <div class="ribbon-col" class:open={railOpen && !rail} onclick={(e) => (e.target as Element).closest('a') && (railOpen = false)}>
     {@render ribbon()}
   </div>
+  {#if rail}
+    <aside class="rail" class:open={railOpen} aria-label={railLabel}>
+      {@render rail(() => (railOpen = false))}
+    </aside>
+  {/if}
   <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
   <div class="scrim" class:open={railOpen} onclick={() => (railOpen = false)}></div>
 
@@ -89,5 +106,5 @@
 </div>
 
 {#if focus.on}
-  <button class="ghost small focus-exit" onclick={() => focus.toggle(false)} title="Esc / F">{words.leaveFocus}</button>
+  <button class="ghost small focus-exit" onclick={() => focus.toggle(false)} title={words.leaveFocusHint}>{words.leaveFocus}</button>
 {/if}

@@ -3,7 +3,9 @@
   // the core's settings, the core's Markdown with the app's links to notes), Notes (live over the core's event stream,
   // searched by the core's palette, charted by its columns, with the core's chat beside it) and Settings (the core's
   // AgentSettings, with the motto as the app's own section). The core's agent drawer at the foot, opened from the
-  // status line or with Ctrl+`. Each extension point gets one thing of the app's.
+  // status line or with Ctrl+`. Each extension point gets one thing of the app's: an index of the notes as the frame's
+  // rail, a note being typed keeping focus mode on Escape, the notes counted on the ribbon, one tab for every note, a
+  // note's own card on hover, and the chat told how many notes there are.
   import type { Place } from '@organon/core/ui/Ribbon.svelte';
   import AgentSettings from '@organon/core/ui/AgentSettings.svelte';
   import type { SettingsView } from '@organon/core/shared/agents';
@@ -69,7 +71,8 @@
       href: '#/notes',
       icon: NOTE,
       on: page === 'notes' || page === 'note',
-      pip: notes.list.length ? 'dot' : undefined,
+      count: notes.list.length,
+      countTitle: `${notes.list.length} notes`,
     },
     { id: 'settings', label: 'Settings', href: '#/settings', icon: GEAR, on: page === 'settings' },
   ]);
@@ -116,8 +119,14 @@
 
 <svelte:window onkeydown={onKey} />
 
-<Frame app="minimal">
+<Frame app="minimal" railLabel="Index" busy={() => draft.trim() !== ''}>
   {#snippet ribbon()}<Ribbon {places} look={theme} />{/snippet}
+  {#snippet rail(close: () => void)}
+    <nav class="index">
+      <h2>Index</h2>
+      {#each notes.list as n, i (i)}<a href="#/notes/{i}" onclick={close}>{n}</a>{/each}
+    </nav>
+  {/snippet}
   {#snippet brand()}minimal{/snippet}
   {#snippet tabbar()}<TabBar
       {tabs}
@@ -158,7 +167,18 @@
         </p>
       {/if}
       {#if problem}<p role="alert">{problem}</p>{/if}
-      <section class="band" data-testid="markdown"><Markdown source={SAMPLE} look={theme} {links} /></section>
+      <section class="band" data-testid="markdown">
+        <Markdown
+          source={SAMPLE}
+          look={theme}
+          {links}
+          enhance={[
+            // Run once per render: counts its runs. And one that follows the notes, re-run alone when they change.
+            (el) => void (el.dataset.runs = String(Number(el.dataset.runs ?? 0) + 1)),
+            (el) => void (el.dataset.notes = String(notes.list.length)),
+          ]}
+        />
+      </section>
     </div>
   {:else if page === 'settings'}
     <AgentSettings name="Minimal">
@@ -183,6 +203,8 @@
           chats={notes.chats}
           thread="notes"
           title="The notes"
+          where={() => `The notes · ${notes.list.length} of them`}
+          placeholder="Ask about a note…"
           name="Minimal"
           markdown={renderMarkdown}
           page={() => notes.list.join('\n')}
@@ -196,7 +218,9 @@
         <ul class="recs" aria-label="Notes">
           {#each notes.list as n, i (i)}
             <li>
-              <a class="rec acc" href="#/notes/{i}" data-menu={i}><span class="rec-t">{n}</span><span class="rec-m">{n.length}</span></a>
+              <a class="rec acc" href="#/notes/{i}" data-menu={i} data-note={i}
+                ><span class="rec-t">{n}</span><span class="rec-m">{n.length}</span></a
+              >
             </li>
           {:else}
             <li class="rec empty">No notes yet.</li>
@@ -224,7 +248,12 @@
   <TerminalDrawer app="minimal" title="Organon minimal" look={theme} markdown={renderMarkdown} />
 {/if}
 
-<HoverCard />
+<HoverCard targets="[data-note]" entityOf={(el) => (el.dataset.note === undefined ? undefined : `note:${el.dataset.note}`)}>
+  {#snippet entity(key: string)}
+    {@const n = Number(key.slice(5))}
+    <div class="note-card"><strong>Note {n + 1}</strong> {notes.list[n] ?? ''}</div>
+  {/snippet}
+</HoverCard>
 <Lightbox />
 <Search
   kinds={{ note: 'Note' }}

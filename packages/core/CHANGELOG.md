@@ -3,6 +3,29 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.8.0
+
+**What an app changes:** nothing to keep working. Pulled by Aristotle's move to the core (docs/plano.md, step 3);
+each is a way in for what Aristotle has and Galen does not:
+
+- `serve({ images })`: hosts the app's pages may show images from, besides its own, in the CSP's `img-src`
+  (Aristotle's figures from `https://upload.wikimedia.org`). Only bare https origins: anything else stops the server
+  before it starts, so the option can never widen the policy otherwise.
+- `Frame`: `rail` (a pane between the ribbon and the page, handed `close`; on a small screen the menu button slides it
+  in, in place of the ribbon: Aristotle's library), `railLabel`, and `busy` (something of the app's open that Escape
+  closes before it leaves focus mode: Aristotle's question panel, a pinned gloss). The rail's look is the app's CSS.
+  The focus button's tooltip is a word now, `leaveFocusHint`.
+- `createTabs({ group, legacyKeys })`: pages that share one tab (Aristotle: a class and its steps), and keys the tabs
+  were kept under before.
+- `Ribbon`: a place's `count` (and `countTitle`), shown when it has no pip (Aristotle: what to review today).
+- `HoverCard`: `targets`, more of the app's own to point at, and `entityOf`, the entity key for one of them, drawn by
+  the app's `entity` snippet (Aristotle's concept links and glossed passages).
+- `Markdown`: `enhance` may be a list, each run in an effect of its own, so one that follows the app's state (its
+  glosses, its map) re-runs alone, without the others (live figures) mounted again mid-read.
+- `ChatPanel`: `where` (what is sent as where the person is, when it says more than the title) and `placeholder`.
+
+The example uses each of them, and its browser tests prove them (the enhancers' test fails with them run as one).
+
 ## 0.7.1
 
 **What an app changes:** nothing. Its next release and rollback use what is new.

@@ -24,6 +24,8 @@ export const EN = {
   focus: 'Focus',
   focusHint: 'Focus: hide everything but the page (F)',
   leaveFocus: 'Leave focus',
+  /** The tooltip of the button that leaves focus mode. */
+  leaveFocusHint: 'Esc / F',
   menu: 'Open the menu',
   places: 'Places',
   openPages: 'Open pages',
@@ -195,6 +197,7 @@ export const PT: Words = {
   focus: 'Foco',
   focusHint: 'Foco: esconde tudo menos a página (F)',
   leaveFocus: 'Sair do foco',
+  leaveFocusHint: 'Esc / F',
   menu: 'Abrir o menu',
   places: 'Sítios',
   openPages: 'Páginas abertas',

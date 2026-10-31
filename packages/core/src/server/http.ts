@@ -51,6 +51,11 @@ export interface ServeOptions {
   /** What /api/state carries besides the build and the warnings. */
   state?: () => Record<string, unknown>;
   warnings?: Warnings;
+  /**
+   * Hosts the app's pages may show images from, besides its own (https origins only, as "https://upload.wikimedia.org":
+   * Aristotle's figures from Wikimedia Commons). Anything else stops the server before it starts.
+   */
+  images?: string[];
   /** The install's accent, written on <html> until the browser picks its own (settings.accent). */
   accent?: () => string | undefined;
   /** Before the process exits on SIGTERM or SIGINT: let the stores finish writing (bounded to 3 s). */
@@ -81,6 +86,10 @@ const TYPES: Record<string, string> = {
 
 export async function serve(app: App, options: ServeOptions = {}): Promise<Serving> {
   const UID = process.getuid?.();
+  // An image host goes into the CSP as it is: only a bare https origin, never anything that could widen the policy.
+  for (const host of options.images ?? [])
+    if (!/^https:\/\/[a-z0-9-]+(\.[a-z0-9-]+)+$/.test(host)) throw new Error(`Not an image host (an https origin): ${host}`);
+  const images = (options.images ?? []).map((h) => ` ${h}`).join('');
   // The commit this server runs, read once at start: the release checks it is the new one that answers.
   const commit = headCommit(app.root);
 
@@ -92,7 +101,7 @@ export async function serve(app: App, options: ServeOptions = {}): Promise<Servi
       // a browser sends without an Origin (a GET from an <img>, a link): browsers mark those cross-site.
       const api = url.pathname.startsWith('/api/') || url.pathname === '/mcp';
       if (api && !sameSite(req)) return send(res, 403, 'Forbidden');
-      protect(req, res);
+      protect(req, res, images);
       // Once the browsers trust the certificate, pages on http://<name> move to https. Not /api/ or /mcp: a page
       // still open over http keeps working, which a redirect to another origin would break.
       if (app.tlsTrusted && !('encrypted' in req.socket) && req.headers.host === app.hostname && !api) {
@@ -260,12 +269,12 @@ function sameSite(req: http.IncomingMessage): boolean {
  * Headers on every answer. The policy lets the interface run only its own scripts, talk only to this server and show
  * only its own images, and no other page may frame it.
  */
-function protect(req: http.IncomingMessage, res: http.ServerResponse) {
+function protect(req: http.IncomingMessage, res: http.ServerResponse, images = '') {
   const host = req.headers.host ?? '';
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; " +
-      "img-src 'self' data: blob:; font-src 'self' data:; " +
+      `img-src 'self' data: blob:${images}; font-src 'self' data:; ` +
       `connect-src 'self' ws://${host} wss://${host}; object-src 'none'; base-uri 'none'; form-action 'none'; ` +
       "frame-ancestors 'none'; frame-src 'none'",
   );

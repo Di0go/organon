@@ -160,16 +160,84 @@ test("The core's frame: the ribbon's places, a tab per page, the status line, al
   await page.close();
 });
 
-test('On a phone, the ribbon slides in from the menu button and closes on a place', { skip: !CHROMIUM }, async () => {
+test("On a phone, the frame's rail (the app's index) slides in from the menu button and closes on a pick; the ribbon stays hidden", {
+  skip: !CHROMIUM,
+}, async () => {
+  await fetch(`${app.base}/api/notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"text":"Mend the net"}',
+  });
   const page = await browser!.newPage({ viewport: { width: 390, height: 844 } });
   await page.goto(app.base);
-  const ribbon = page.locator('.ribbon-col');
-  assert.ok((await ribbon.boundingBox())!.x < 0, 'hidden off the left edge');
+  const rail = page.getByRole('complementary', { name: 'Index' });
+  assert.ok((await rail.boundingBox())!.x < 0, 'hidden off the left edge');
   await page.getByRole('button', { name: 'Open the menu' }).click();
-  await page.waitForFunction(() => document.querySelector('.ribbon-col')!.getBoundingClientRect().x >= 0);
-  await page.getByRole('navigation', { name: 'Places' }).getByRole('link', { name: 'Notes' }).click();
-  await page.waitForFunction(() => document.querySelector('.ribbon-col')!.getBoundingClientRect().x < 0);
-  assert.equal(await page.evaluate(() => location.hash), '#/notes');
+  await page.waitForFunction(() => document.querySelector('.rail')!.getBoundingClientRect().x >= 0);
+  assert.equal(await page.locator('.ribbon-col').isVisible(), false);
+  await rail.getByRole('link', { name: 'Mend the net' }).click();
+  await page.waitForFunction(() => document.querySelector('.rail')!.getBoundingClientRect().x < 0);
+  assert.match(await page.evaluate(() => location.hash), /^#\/notes\/\d+$/);
+  await page.close();
+});
+
+test("The core's Markdown runs each of the app's enhancers on its own: one following the app's state re-runs alone", {
+  skip: !CHROMIUM,
+}, async () => {
+  const page = await browser!.newPage();
+  await page.goto(app.base);
+  const md = page.locator('[data-testid="markdown"] [data-runs]');
+  await md.waitFor();
+  await page.waitForTimeout(500);
+  const before = Number(await md.getAttribute('data-notes'));
+  const runs = await md.getAttribute('data-runs');
+  await fetch(`${app.base}/api/notes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"text":"Count me"}' });
+  await page.waitForFunction((n) => Number(document.querySelector('[data-notes]')?.getAttribute('data-notes')) > n, before);
+  assert.equal(await md.getAttribute('data-runs'), runs, 'the other enhancer was not run again');
+  await page.close();
+});
+
+test("The app's own extension points: a count on the ribbon, one tab for every note, a note's card on hover, Escape kept while busy", {
+  skip: !CHROMIUM,
+}, async () => {
+  for (const text of ['First of two', 'Second of two'])
+    await fetch(`${app.base}/api/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text }),
+    });
+  const page = await browser!.newPage();
+  const errors: string[] = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(`${app.base}/#/notes`);
+  const list = page.getByRole('list', { name: 'Notes' });
+  await list.getByText('Second of two').waitFor();
+  const count = Number(await page.locator('.ribbon .count').innerText());
+  assert.equal(count, await list.locator('li').count());
+  // One tab for every note: opening a second note moves the first one's tab along.
+  await list.getByText('First of two').click();
+  await page.getByRole('heading', { name: 'First of two' }).waitFor();
+  const tabsBefore = await page.getByRole('tab').count();
+  await page.goto(`${app.base}/#/notes`);
+  await list.getByText('Second of two').click();
+  await page.getByRole('heading', { name: 'Second of two' }).waitFor();
+  assert.equal(await page.getByRole('tab').count(), tabsBefore);
+  await page.getByRole('tab', { name: 'Second of two', selected: true }).waitFor();
+  // The app's entity under the pointer gets its card, drawn by the app.
+  await page.goto(`${app.base}/#/notes`);
+  await list.getByText('First of two').hover();
+  await page.locator('.hovercard .note-card').getByText('First of two').waitFor();
+  await page.mouse.move(0, 0);
+  // Focus mode: Escape leaves it, unless the app says it has something open first (a note being typed).
+  await page.keyboard.press('f');
+  await page.waitForFunction(() => document.documentElement.classList.contains('focus'));
+  await page.getByRole('textbox', { name: 'New note' }).fill('half a thought');
+  await page.keyboard.press('Escape');
+  assert.equal(await page.evaluate(() => document.documentElement.classList.contains('focus')), true);
+  await page.getByRole('textbox', { name: 'New note' }).fill('');
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !document.documentElement.classList.contains('focus'));
+  assert.deepEqual(errors, []);
   await page.close();
 });
 
@@ -195,7 +263,9 @@ test("The core's chat beside a page: a message goes with the page, the answer co
   await page.keyboard.type('please');
   await page.keyboard.press('Enter');
   // `cat` stands in for Claude Code: the answer is what it was sent, the page and the tag included.
-  await chat.getByText(/Where they are: The notes/).waitFor();
+  assert.equal(await box.getAttribute('placeholder'), 'Ask about a note…');
+  // Where they are, as the app says it, not only the page's title.
+  await chat.getByText(/Where they are: The notes · \d+ of them/).waitFor();
   const answer = await chat.locator('.msg.theirs .answer').innerText();
   assert.match(answer, /On screen:\s+.*Oil the hinges/s);
   assert.match(answer, /Tagged:\s+Note \d+: Oil the hinges/);

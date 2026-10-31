@@ -35,6 +35,7 @@ before(async () => {
     warnings,
     state: () => ({ hosts: 3 }),
     accent: () => 'red',
+    images: ['https://upload.wikimedia.org'],
     api: async (req, res, route) => {
       if (req.method === 'GET' && route === '/api/hosts') return json(res, 200, [1, 2, 3]);
       if (req.method === 'POST' && route === '/api/echo') return json(res, 200, { got: await readJson(req) });
@@ -93,6 +94,8 @@ test('The interface: index.html for any page with the install’s accent, assets
   assert.match(await page.text(), /<html lang="en" data-accent="red">/);
   assert.match(page.headers.get('content-security-policy') ?? '', /frame-ancestors 'none'/);
   assert.equal(page.headers.get('x-frame-options'), 'DENY');
+  // The app's own image hosts (Aristotle's Wikimedia), after the core's sources, and nothing else.
+  assert.match(page.headers.get('content-security-policy') ?? '', /img-src 'self' data: blob: https:\/\/upload\.wikimedia\.org;/);
   const asset = await get('/assets/index-AbC123.js');
   assert.match(asset.headers.get('cache-control') ?? '', /immutable/);
   assert.equal((await get('/assets/index-gone.js')).status, 404);
@@ -155,4 +158,9 @@ test('A WebSocket upgrade reaches the app only from its own page: exact Host, an
   } finally {
     await sock.close();
   }
+});
+
+test('An image host must be an https origin and nothing more: anything else stops the server before it starts', async () => {
+  for (const bad of ['http://upload.wikimedia.org', "https://a.org; script-src 'unsafe-inline'", 'https://a.org/path', '*'])
+    await assert.rejects(serve(app, { signals: false, images: [bad] }), /image host/);
 });

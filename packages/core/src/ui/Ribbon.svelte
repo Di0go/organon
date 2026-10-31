@@ -9,6 +9,9 @@
     /** A dot on the icon: something new there (`dot`), or something that needs him (`turn`, beating). */
     pip?: 'dot' | 'turn';
     pipTitle?: string;
+    /** A number on the icon, when there is no pip (Aristotle: the concepts to review today); 0 shows nothing. */
+    count?: number;
+    countTitle?: string;
     title?: string;
   }
 </script>
@@ -42,7 +45,9 @@
     <a class="rib" class:on={p.on} href={p.href} aria-current={p.on ? 'page' : undefined} title={p.title}>
       <svg viewBox="0 0 20 20" aria-hidden="true"><path d={p.icon} /></svg>
       <span class="lbl">{p.label}</span>
-      {#if p.pip}<i class="pip" class:turn={p.pip === 'turn'} title={p.pipTitle}></i>{/if}
+      {#if p.pip}<i class="pip" class:turn={p.pip === 'turn'} title={p.pipTitle}></i>{:else if p.count}<i class="count" title={p.countTitle}
+          >{p.count}</i
+        >{/if}
     </a>
   {/each}
   <button class="rib" class:on={searchBox.open} onclick={() => searchBox.toggle()} title={words.searchHint}>
@@ -155,6 +160,20 @@
     height: 6px;
     border-radius: 50%;
     background: var(--acc);
+  }
+
+  .ribbon :global(.count) {
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    min-width: 15px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: var(--acc);
+    color: var(--on-acc, #fff);
+    font: 600 0.62rem/15px var(--sans);
+    font-style: normal;
+    text-align: center;
   }
 
   /* Something urgent: an alert he should see today. */

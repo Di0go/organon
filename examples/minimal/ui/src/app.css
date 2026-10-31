@@ -16,3 +16,59 @@
   background: var(--acc);
   color: var(--on-acc);
 }
+
+/* The frame's rail: an index of the notes between the ribbon and the page, sliding in from the menu on a phone. */
+.app:has(> .rail) {
+  grid-template-columns: var(--ribbon-w) 200px minmax(0, 1fr);
+}
+
+.rail {
+  position: sticky;
+  top: 0;
+  height: calc(100vh - var(--status-h));
+  overflow: auto;
+  background: var(--b1);
+  border-right: 1px solid var(--rule);
+}
+
+.index {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+}
+
+.index h2 {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+@media (max-width: 960px) {
+  .app:has(> .rail) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ribbon-col:has(+ .rail) {
+    display: none;
+  }
+
+  .rail {
+    position: fixed;
+    z-index: 40;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: auto;
+    width: min(300px, 86vw);
+    transform: translateX(-100%);
+    transition: transform 0.22s var(--ease);
+  }
+
+  .rail.open {
+    transform: none;
+  }
+}
+
+html.focus .rail {
+  display: none;
+}

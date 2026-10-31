@@ -12,8 +12,14 @@
   let {
     entity,
     inline,
+    targets = '',
+    entityOf,
   }: {
     entity?: Snippet<[string]>;
+    /** More of the app's own to point at, as a selector (Aristotle: concept links, glossed passages). */
+    targets?: string;
+    /** The entity key for one of those, drawn by `entity` (Aristotle: "concept:topic/id", "gloss:id"); none, no card. */
+    entityOf?: (el: HTMLElement) => string | undefined;
     /** Each paragraph as safe HTML (the core's renderInline from ui/markdown); plain text when not given. */
     inline?: (text: string) => string;
   } = $props();
@@ -23,7 +29,8 @@
 
   const WIDTH = 320;
   // A {{term|definition}} from the core's Markdown is a .term carrying its definition.
-  const SELECTOR = '.term[data-def], [data-tip], [data-tip-entity]';
+  // svelte-ignore state_referenced_locally
+  const SELECTOR = ['.term[data-def], [data-tip], [data-tip-entity]', targets].filter(Boolean).join(', ');
   let box = $state<HTMLDivElement>();
 
   let card = $state<Card | null>(null);
@@ -74,6 +81,8 @@
   function build(el: HTMLElement): Card | null {
     if (el.matches('.term[data-def]')) return { title: el.textContent ?? '', paras: paras(el.dataset.def ?? '') };
     if (el.dataset.tipEntity && entity) return { title: '', paras: [], entity: el.dataset.tipEntity };
+    const own = entity && entityOf?.(el);
+    if (own) return { title: '', paras: [], entity: own };
     const tip = el.dataset.tip;
     if (!tip) return null;
     return { title: el.dataset.tipTitle ?? '', paras: paras(tip) };

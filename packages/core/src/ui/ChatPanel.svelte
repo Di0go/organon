@@ -33,6 +33,8 @@
     chats,
     thread,
     title,
+    where: whereNow,
+    placeholder,
     page,
     step,
     name,
@@ -45,6 +47,10 @@
     thread: string;
     /** What the page is, in words ("Home", "The day 2026-10-18"). */
     title: string;
+    /** Where the person is, in words, sent with each message when it says more than the title (Aristotle: "The class · Step 3: …"). */
+    where?: () => string;
+    /** The message box's hint, when the app's says more than "Ask about <title>…" (Aristotle: the step being read). */
+    placeholder?: string;
     /** The page as text, sent with each message so the chat sees what the person sees. */
     page?: () => string;
     /** Where in the page they are (Aristotle's step), sent with each message. */
@@ -111,7 +117,7 @@
   /** He is reading the newest messages (scrolled to the bottom), so new text keeps them in view. */
   let following = true;
   let scrollQueued = false;
-  const where = $derived(title);
+  const where = $derived(whereNow?.() ?? title);
   /** Everything that can be tagged, as the app says. */
   const mentionables = $derived(mentionList?.() ?? []);
   const options = $derived.by(() => {
@@ -387,7 +393,7 @@
         oninput={onInput}
         onkeydown={onKey}
         rows="1"
-        placeholder={words.askAbout(title)}
+        placeholder={placeholder ?? words.askAbout(title)}
         aria-label={words.messageName(name)}></textarea>
       {#if sending}
         <button class="send stop" onclick={stop} title={words.stopAnswer} aria-label={words.stopAnswer}>

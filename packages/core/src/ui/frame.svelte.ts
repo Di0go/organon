@@ -19,11 +19,16 @@ export const searchBox = new SearchBox();
 class Focus {
   on = $state(false);
   private key = '';
+  private busy: () => boolean = () => false;
 
-  /** Reads what this browser remembers, and starts listening for F and Escape. Once, from Frame.svelte. */
-  init(key: string) {
+  /**
+   * Reads what this browser remembers, and starts listening for F and Escape. Once, from Frame.svelte. `busy`: whether
+   * something of the app's is open that Escape closes first (Aristotle's question panel, a pinned gloss).
+   */
+  init(key: string, busy?: () => boolean) {
     if (this.key) return;
     this.key = key;
+    if (busy) this.busy = busy;
     try {
       this.on = localStorage.getItem(key) === '1';
     } catch {
@@ -36,7 +41,7 @@ class Focus {
       'keydown',
       (e) => {
         const typing = (e.target as Element | null)?.closest?.('input, textarea, select, [contenteditable], .xterm');
-        if (e.key === 'Escape' && this.on && !searchBox.open) this.toggle(false);
+        if (e.key === 'Escape' && this.on && !searchBox.open && !this.busy()) this.toggle(false);
         else if ((e.key === 'f' || e.key === 'F') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey) this.toggle();
       },
       { capture: true },

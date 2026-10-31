@@ -9,6 +9,9 @@
   //
   // From Galen's Markdown.svelte, with its router and theme handed in.
 
+  /** The app's own work on the rendered page; what it returns is called before the next run. */
+  export type Enhancer = (el: HTMLElement) => void | (() => void);
+
   /** Diagrams drawn so far, by look (theme and accent) and source, so a note revisited shows them at once. */
   const diagrams = new Map<string, string>();
   /** The look Mermaid was last set up for. */
@@ -47,9 +50,11 @@
     look?: { value: string; accent: string };
     /**
      * The app's own work on the rendered page, run on every render before the core's (Aristotle's live figures and
-     * glossed phrases); what it returns is called before the next one.
+     * glossed phrases); what it returns is called before the next one. A list runs each in an effect of its own, so
+     * one that follows the app's state (glosses, the map) re-runs alone, without the others (live figures) mounted
+     * again.
      */
-    enhance?: (el: HTMLElement) => void | (() => void);
+    enhance?: Enhancer | Enhancer[];
     /** A selector for the app's own live figures (Aristotle's ".kit"): their drawings get no Play/Pause from here. */
     ownFigures?: string;
   } = $props();
@@ -58,10 +63,12 @@
 
   const html = $derived(inline ? markdown.renderInline(source) : markdown.renderMarkdown(source));
 
-  $effect(() => {
-    void html;
-    if (el && enhance) return enhance(el);
-  });
+  // svelte-ignore state_referenced_locally
+  for (const one of [enhance ?? []].flat())
+    $effect(() => {
+      void html;
+      if (el) return one(el);
+    });
 
   // Links the app opens inside itself (Galen's links between notes, "../training/kickboxing.md#section").
   $effect(() => {

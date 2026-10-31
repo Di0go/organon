@@ -39,4 +39,5 @@ export const router = createRouter((hash): Route => {
   return { page: 'home' };
 });
 
-export const tabs = createTabs({ key: 'minimal.tabs' });
+// Every note shares one tab: opening another moves it along.
+export const tabs = createTabs({ key: 'minimal.tabs', group: (key) => (router.parse(key).page === 'note' ? 'note' : undefined) });
