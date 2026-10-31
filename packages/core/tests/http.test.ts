@@ -3,6 +3,7 @@
 
 import { after, before, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import http from 'node:http';
 import type { App } from '../src/server/app.ts';
@@ -13,10 +14,21 @@ import { fixtureApp } from './fixture-app.ts';
 let app: App;
 let serving: Serving;
 let base: string;
+let head: string;
 const warnings = new Warnings();
 
 before(async () => {
   app = await fixtureApp();
+  // A checkout, as an app's is: the health says its commit.
+  const git = (...args: string[]) =>
+    execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@t', '-c', 'commit.gpgsign=false', ...args], {
+      cwd: app.root,
+      encoding: 'utf8',
+    }).trim();
+  git('init', '--quiet');
+  git('add', '-A');
+  git('commit', '--quiet', '-m', 'probe');
+  head = git('rev-parse', 'HEAD');
   warnings.set('x', 'Something to know');
   serving = await serve(app, {
     signals: false,
@@ -37,9 +49,9 @@ after(() => serving.close());
 
 const get = (p: string, headers: Record<string, string> = {}) => fetch(`${base}${p}`, { headers });
 
-test('Health says which app, instance and checkout; state carries the app’s, the warnings and no build in dev', async () => {
+test('Health says which app, instance, checkout and commit; state carries the app’s, the warnings and no build in dev', async () => {
   const h = (await (await get('/api/health')).json()) as Record<string, unknown>;
-  assert.deepEqual([h.ok, h.app, h.instance, h.root], [true, 'probe', 'dev', app.root]);
+  assert.deepEqual([h.ok, h.app, h.instance, h.root, h.commit], [true, 'probe', 'dev', app.root, head]);
   assert.deepEqual(await (await get('/api/state')).json(), { hosts: 3, warnings: ['Something to know'] });
   assert.ok(existsSync(app.pidFile), 'the pid file is written');
 });

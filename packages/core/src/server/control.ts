@@ -17,6 +17,8 @@ export interface Health {
   app?: string;
   instance?: string;
   root?: string;
+  /** The commit it runs (since 0.7.1). */
+  commit?: string;
   pid?: number;
 }
 

@@ -8,7 +8,8 @@
 //      builds there;
 //   3. points <name>.service at it (the core's install-service.sh, from the release copy's own node_modules) and
 //      restarts it;
-//   4. checks it answers from the new copy; if not, puts the previous release back.
+//   4. checks the new commit answers, from a new process (the health says its commit); if not, puts the previous
+//      release back.
 // The tag `live` marks what is running; `git log live..` is what is not released yet.
 //
 //   pnpm release              release HEAD
@@ -17,7 +18,7 @@
 // From Galen's scripts/release.ts.
 
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, lstatSync, readFileSync, symlinkSync } from 'node:fs';
+import { existsSync, lstatSync, symlinkSync } from 'node:fs';
 import path from 'node:path';
 import type { App } from './app.ts';
 
@@ -40,21 +41,20 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
   const dataDir = app.env('DATA_DIR') ?? path.join(ROOT, 'data');
   const stateDir = app.env('STATE_DIR') ?? path.join(ROOT, `.${app.name}`);
 
-  /** The checkout the live server says it runs from, once it answers (up to 10 s). */
-  async function liveRoot(): Promise<string | undefined> {
-    for (let i = 0; i < 50; i++) {
-      try {
-        const h = (await (await fetch(`http://127.0.0.1:${app.port}/api/health`)).json()) as { root?: string };
-        if (h.root) return h.root;
-      } catch {}
-      await new Promise((r) => setTimeout(r, 200));
+  /** The pid of the server answering now, if one does (at once: nothing to wait for). */
+  async function livePid(): Promise<number | undefined> {
+    try {
+      const res = await fetch(`http://127.0.0.1:${app.port}/api/health`, { signal: AbortSignal.timeout(1000) });
+      return ((await res.json()) as { pid?: number }).pid;
+    } catch {
+      return undefined;
     }
-    return undefined;
   }
 
   /** Checks `sha` out in the release copy, builds it and restarts the service on it. */
   async function deploy(sha: string): Promise<boolean> {
     const dir = app.releaseDir;
+    const pidBefore = await livePid();
     if (!existsSync(dir)) run('git', ['worktree', 'add', '--detach', dir, sha], ROOT);
     else run('git', ['checkout', '--quiet', '--detach', sha], dir);
     // An agent started in the release copy may read data/ there: give it the real data/ under the same name.
@@ -67,13 +67,19 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
       [`${app.prefix}_DATA_DIR`]: dataDir,
       [`${app.prefix}_STATE_DIR`]: stateDir,
     });
-    return (await liveRoot()) === dir;
+    return releaseAnswers(app.port, { dir, sha, pidBefore });
   }
 
-  // 0. A pin the release copy could not install is refused before anything is built or stopped.
+  const rollback = argv.includes('--rollback');
+  const previous = tag('live');
+  const target = rollback ? tag('live-previous') : git('rev-parse', 'HEAD');
+  if (!target) throw new Error('Nothing to roll back to: there is no live-previous tag yet.');
+
+  // 0. A pin the release copy could not install is refused before anything is built or stopped. The lockfile read is
+  // the target commit's, the one the copy installs: on a rollback the checkout's may pin something else entirely.
   let lock = '';
   try {
-    lock = readFileSync(path.join(ROOT, 'pnpm-lock.yaml'), 'utf8');
+    lock = git('show', `${target}:pnpm-lock.yaml`);
   } catch {}
   const unverified = unverifiedPins(lock);
   if (unverified.length) {
@@ -93,10 +99,6 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
   }
 
   // 1. Refuse uncommitted changes and run the gates (not for a rollback, which goes back to a release that passed).
-  const rollback = argv.includes('--rollback');
-  const previous = tag('live');
-  const target = rollback ? tag('live-previous') : git('rev-parse', 'HEAD');
-  if (!target) throw new Error('Nothing to roll back to: there is no live-previous tag yet.');
   if (!rollback) {
     if (git('status', '--porcelain', '--untracked-files=no')) {
       say('Uncommitted changes: commit them first. A release is always a commit you can go back to.');
@@ -120,6 +122,30 @@ export async function release(app: App, argv = process.argv.slice(2)): Promise<b
     say(
       (await deploy(previous)) ? 'Previous release restored.' : `The previous release did not come up either: see ${stateDir}/server.log.`,
     );
+  }
+  return false;
+}
+
+/**
+ * Whether the release of `sha` in `dir` is what answers on `port`, waiting for it (by default up to 10 s). The folder
+ * is always the same release copy, so it proves nothing alone: the server must say it runs `sha`, from a process other
+ * than the one that answered before the restart (a service that did not restart still answers, from the same folder,
+ * with the old commit). A release from before the server said its commit (a rollback across the move to the core)
+ * has only the new process to show.
+ */
+export async function releaseAnswers(
+  port: number,
+  want: { dir: string; sha: string; pidBefore: number | undefined },
+  { tries = 50, every = 200 } = {},
+): Promise<boolean> {
+  for (let i = 0; i < tries; i++) {
+    try {
+      const res = await fetch(`http://127.0.0.1:${port}/api/health`, { signal: AbortSignal.timeout(1000) });
+      const h = (await res.json()) as { root?: string; pid?: number; commit?: string };
+      const fresh = want.pidBefore === undefined || h.pid !== want.pidBefore;
+      if (h.root === want.dir && fresh && (h.commit === undefined || h.commit === want.sha)) return true;
+    } catch {}
+    await new Promise((r) => setTimeout(r, every));
   }
   return false;
 }

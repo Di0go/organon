@@ -9,6 +9,7 @@
 // From Galen's server/index.ts (206713f: the build in /api/state, so a page reloads on a new release), with the
 // routes, the feed and the terminal left in the app. What an app hands it is in ServeOptions.
 
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import http from 'node:http';
@@ -80,6 +81,8 @@ const TYPES: Record<string, string> = {
 
 export async function serve(app: App, options: ServeOptions = {}): Promise<Serving> {
   const UID = process.getuid?.();
+  // The commit this server runs, read once at start: the release checks it is the new one that answers.
+  const commit = headCommit(app.root);
 
   async function handle(req: http.IncomingMessage, res: http.ServerResponse) {
     try {
@@ -119,7 +122,7 @@ export async function serve(app: App, options: ServeOptions = {}): Promise<Servi
       return json(res, 415, { error: 'Send JSON (Content-Type: application/json)' });
     }
     if (req.method === 'GET' && route === '/api/health')
-      return json(res, 200, { ok: true, app: app.name, instance: app.instance, root: app.root, pid: process.pid });
+      return json(res, 200, { ok: true, app: app.name, instance: app.instance, root: app.root, commit, pid: process.pid });
     if (req.method === 'GET' && route === '/api/state')
       return json(res, 200, { ...options.state?.(), warnings: options.warnings?.list() ?? [], build: uiBuild() });
     if (options.api && (await options.api(req, res, route, params))) return;
@@ -297,4 +300,17 @@ export function json(res: http.ServerResponse, status: number, body: unknown): t
 export function send(res: http.ServerResponse, status: number, message: string): true {
   res.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' }).end(message);
   return true;
+}
+
+/** The commit checked out in `root`, or undefined outside a Git checkout. */
+function headCommit(root: string): string | undefined {
+  try {
+    return execFileSync('git', ['rev-parse', '--verify', '--quiet', 'HEAD'], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+  } catch {
+    return undefined;
+  }
 }
