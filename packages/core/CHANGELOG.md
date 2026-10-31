@@ -3,6 +3,20 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.7.1
+
+**What an app changes:** nothing. Its next release and rollback use what is new.
+
+- **Fix:** `pnpm release --rollback` checked the pins in the checkout's lockfile, not in the one of the release it went
+  back to: a `file:` pin in the checkout (a version being tried) blocked a rollback whose target pins the core by URL.
+  The checks now read the target commit's `pnpm-lock.yaml`, the one the release copy installs, for a release and a
+  rollback alike. Found on Galen's migration.
+- **Fix:** a release counted as live when the server answered from the release copy, which is always the same folder:
+  a service that did not restart passed, the old commit answering (seen in a review of Galen's release). `/api/health`
+  now says the `commit` the server runs, and the release waits for that commit from a process other than the one that
+  answered before; a release from before the health said its commit (a rollback across the move to the core) shows
+  only the new process.
+
 ## 0.7.0
 
 **What an app changes:** nothing to keep working. To use the core's Markdown instead of its own copy (Galen's and

@@ -415,10 +415,12 @@ foi feita com a palavra do Diogo, e o rollback experimentado; a migração não 
 - **As excepções dos diferenciais têm de ser estreitas.** A red team viu que uma excepção por passo deixava passar
   tudo nesse passo (o CSP, o status), e que o glifo do telemóvel se comparava sem contar. Agora uma excepção de corpo
   exige o mesmo status, os mesmos cabeçalhos e o mesmo redireccionamento, e o glifo conta como permitido ou diferente.
-- **Por corrigir no núcleo:** `pnpm release --rollback` lê o lockfile da checkout antes de saber que é um rollback, por
-  isso um pino `file:` na checkout bloqueia um rollback cujo alvo não tem nada a ver com ele (`server/release.ts`,
-  passos 0 e 1). Na release do Galen não morde, porque a checkout tem o pino pelo URL. A correcção é saltar essas
-  verificações no rollback ou ler o lockfile do commit alvo, com um teste, numa 0.7.1.
+- **Corrigido na 0.7.1:** `pnpm release --rollback` lia o lockfile da checkout antes de saber que era um rollback, por
+  isso um pino `file:` na checkout bloqueava um rollback cujo alvo não tinha nada a ver com ele. Agora as verificações
+  lêem o `pnpm-lock.yaml` do commit alvo (`git show <alvo>:pnpm-lock.yaml`), o que a cópia de release instala. Na
+  mesma versão, a revisão da release achou que a verificação depois do reinício só comparava a pasta, que é sempre a
+  mesma: um serviço que não reiniciou passava, com o commit velho a responder. O `/api/health` diz agora o `commit`, e
+  a release espera por esse commit num processo novo.
 - **A release espera pelo push.** A release recusa um pino `file:` (0.4.1), por isso o Galen só vai ao vivo depois de a
   versão estar no GitHub (`pnpm publish:release`). Na dev, um *tarball* da árvore de trabalho num sítio descartável
   (`scripts/pack.ts`, `pack(dir, { overwrite: true })`) serve para iterar sem gastar versões.

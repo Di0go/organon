@@ -64,7 +64,7 @@ source, served by the `organon()` Vite plugin.
 Pin a release by its URL. The lockfile keeps the tarball's hash, so a version can never change under an app.
 
 ```sh
-pnpm add https://github.com/Di0go/organon/releases/download/v0.7.0/organon-core-0.7.0.tgz
+pnpm add https://github.com/Di0go/organon/releases/download/v0.7.1/organon-core-0.7.1.tgz
 ```
 
 Then wire it in, as [`examples/minimal`](examples/minimal) does:
