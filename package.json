@@ -15,7 +15,7 @@
     "pack:release": "node scripts/pack.ts",
     "publish:release": "node scripts/publish.ts",
     "canary": "node scripts/canary.ts",
-    "gates": "pnpm lint && pnpm check && pnpm test && node scripts/canary.ts examples/minimal ../Argus ../Galen --run \"pnpm gates\"",
+    "gates": "pnpm lint && pnpm check && pnpm test && node scripts/canary.ts examples/minimal ../Argus ../Galen ../Aristotle --run \"pnpm gates\"",
     "format": "biome check --write . && prettier --write --cache --log-level warn \"packages/*/src/**/*.svelte\" \"examples/*/ui/src/**/*.svelte\""
   },
   "packageManager": "pnpm@10.34.5",

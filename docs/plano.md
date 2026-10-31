@@ -445,7 +445,7 @@ vindo do canal no GitHub.
 > `theme-boot.js`). `data/` não se toca: no fim, `git -C data log` desde o início só tem commits de backup. A release só com a palavra do Diogo, e só depois de o núcleo estar publicado no GitHub
 > (o README público tem de instalar num clone limpo). Feito quando: o critério do passo 3 do plano, corrido e medido.
 
-**Como correu (2026-10-31, a meio: passagem antes do merge e da release).** O Aristotle migrou numa branch `organon`, um commit por módulo, com o «vai» do Diogo
+**Como correu (2026-10-31: feito, na `main` e ao vivo).** O Aristotle migrou numa branch `organon`, um commit por módulo, com o «vai» do Diogo
 («Força, trata disso tudo»). Fixado primeiro na 0.7.1 pelo URL do GitHub (com `integrity` no lockfile, por isso cada
 commit instala num clone limpo); puxou a 0.8.0 e a 0.8.1. O que correu diferente do plano, e o que fica para a app seguinte:
 
@@ -484,12 +484,43 @@ commit instala num clone limpo); puxou a 0.8.0 e a 0.8.1. O que correu diferente
 - **A publicação é o caminho crítico.** A 0.8.x ficou empacotada e com tag local à espera da palavra do Diogo para o
   push; o trabalho seguiu na dev com o tarball local instalado (nunca commitado), e os módulos que dependiam dela
   ficaram por commitar até ao pino.
-- **Onde ficou.** Na branch `organon`, 24 commits (1/n a 24/n, sem 12/n) sobre a 0.7.1; o resto (o `serve()`, a
-  moldura, o `Markdown`, o `HoverCard`, o chat, a 0.8.1) provado na dev e estacionado num commit só na branch
-  `organon-wip`, a dividir por módulo. A red team deixou uma lista de folgas nas provas (as permissões do
-  `/api/state` e do `mcp tools` largas demais, os explorables escondidos, as datas das revisões normalizadas, a
-  chamada a localhost:11434), a apertar antes do merge. Falta: o merge, a release, o rollback ensaiado, o `git clone`
-  público, e o Aristotle no `canary` das gates do Organon.
+- **Como fechou.** O commit estacionado dividiu-se em 25/n–30/n (o pino da 0.8.1, o `serve()`, a moldura, o
+  `Markdown`, o `HoverCard`, o chat), cada um com `check`, lint, testes e build numa worktree própria; 31/n–34/n são
+  as provas apertadas, a busca com o `fold` do núcleo e os documentos. 33 commits (1/n a 34/n, sem 12/n), todos com o
+  núcleo pelo URL do GitHub e `integrity`; a `main` avançou por *fast-forward* (709c034).
+- **As provas, apertadas duas vezes pela red team, e cada aperto achou defeitos do instrumento, não da app.** Nenhum
+  passo se permite inteiro: o que a migração acrescentou corta-se campo a campo e exige-se do lado novo (o `app` e o
+  `commit` do health, este igual ao HEAD; o `build`; os três atributos do `theme-boot`), e as respostas que passaram a
+  ser do núcleo dão-se exactas (o 400 e o 413). As datas das revisões comparam-se como intervalo desde a revisão que as
+  marcou, com um passo que pratica conceitos sólidos dos dados copiados. Isso destapou uma diferença que era do
+  instrumento: o ts-fsrs semeia o *fuzz* com a hora da revisão ao milissegundo, e um A/A (a branch contra ela própria)
+  marcou 64 dias de um lado e 59 do outro. Os dois servidores passam a receber o *fuzz* semeado só pelo cartão (um
+  *load hook* em `seeded-random.ts`, que falha se deixar de aplicar). Os cabeçalhos `X-Aristotle-*` de uma ponte
+  antiga, o caminho https (o 307 para https, a API com `https://aristotle.test` como Origin) e as escritas que nada
+  exercitava (glosa, pergunta, nota, roteiro, missão com *debrief* e revisão) entraram no diferencial. Na UI, a
+  «segunda olhadela» passou a duas, exigindo que cada lado fique igual entre elas, o que mostrou que a abertura do chat
+  mudava o estado (cada olhar mandava outra mensagem). Prova de que o instrumento falha quando deve: uma revisão
+  marcada 1 ms mais tarde e os cabeçalhos antigos ignorados deram, cada um, DIFFERENT. Resultado final contra a
+  `main`, na cópia dos dados reais e na demo: servidor 114 e 110 passos, 0 diferentes; UI 0 diferentes; os outros
+  nove SAME.
+- **Duas permissões escritas depois de ver**, e os guiões dizem-no: o *kerning* de «reading;» no chat (≤ 50 px) e o
+  antialiasing espalhado na resposta do chat da demo (≤ 30 px, texto igual).
+- **O que fica de fora, de propósito:** o `snippet` da busca (o do núcleo tem outra janela, e é o que ele vê); os
+  ficheiros de configuração dos agentes (`.mcp.json`, `.codex`, `.cursor`, `.gemini`, `opencode.json`), que são
+  ficheiros que cada cliente lê num caminho fixo, com o nome da app; o arranque de servidor próprio dos testes `tutor`
+  e `backup`, como no Galen. A UI continua a permitir o gráfico de Progress e o vermelho por página inteira, e os
+  cartões de hover sem tecto de píxeis (o texto tem de ser igual): são mudanças à vista por natureza, ditas no CHANGELOG.
+- **O `git clone` do README num directório limpo:** com um *store* do pnpm vazio (456 MB vindos da rede, o núcleo do
+  GitHub com o `integrity` que o GitHub serve), `pnpm install` e `pnpm start` levantam o servidor e o health diz
+  709c034. Cuidado que fica para a próxima app: `pnpm start` numa máquina com o serviço instalado reinicia o serviço
+  verdadeiro pelo `systemctl --user`. O ensaio usou um `systemctl` falso no PATH e um HOME falso.
+- **O rollback, ensaiado e ao vivo.** Primeiro num clone (o `systemctl` falso, outra porta): a `main` → 709c034 →
+  rollback para 6a847ae (sem `commit` no health, outro pid) → 709c034. Depois ao vivo, a mesma ida e volta, com o
+  health a dizer 709c034 no fim. O `release.ts` da `main` fixa a porta 4747, a da app ao vivo, e por isso não pode ser
+  usado num ensaio. O do núcleo lê a porta da app.
+- **`data/` intocado:** o mesmo HEAD do início ao fim (d916634) e nada por commitar. O `canary` das gates do Organon
+  passa a incluir `../Aristotle`, e corre verde contra a `main` dele.
+- **Fica para o Organon:** os testes do núcleo deixam pastas `/tmp/organon-app-*` (centenas) e não as apagam.
 
 ## O que se rejeitou, para ninguém voltar a tentar
 
