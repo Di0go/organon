@@ -445,6 +445,52 @@ vindo do canal no GitHub.
 > `theme-boot.js`). `data/` não se toca: no fim, `git -C data log` desde o início só tem commits de backup. A release só com a palavra do Diogo, e só depois de o núcleo estar publicado no GitHub
 > (o README público tem de instalar num clone limpo). Feito quando: o critério do passo 3 do plano, corrido e medido.
 
+**Como correu (2026-10-31, a meio: passagem antes do merge e da release).** O Aristotle migrou numa branch `organon`, um commit por módulo, com o «vai» do Diogo
+(«Força, trata disso tudo»). Fixado primeiro na 0.7.1 pelo URL do GitHub (com `integrity` no lockfile, por isso cada
+commit instala num clone limpo); puxou a 0.8.0 e a 0.8.1. O que correu diferente do plano, e o que fica para a app seguinte:
+
+- **Os diferenciais primeiro, e calibrados.** Os do Galen (`differential.ts`, `ui-differential.ts`, os de módulo)
+  foram copiados e tornados herméticos todos (o proxy que recusa ficou em `reference.ts`, para todos os guiões; uma
+  chamada feita só por um lado é diferença). Antes de qualquer troca correu um A/A (a `main` contra ela própria), que
+  apanhou três defeitos do próprio instrumento: o quiz baralha as opções ao acaso (os servidores passaram a ter um
+  `Math.random` e um `crypto.randomInt` com semente, `seeded-random.ts`), a data de hoje era substituída antes das
+  horas, e uma abertura da UI ainda a carregar (passou a esperar que assente e a dar uma segunda olhadela, dita na
+  saída). Mais tarde, na demo, outros dois: um explorable ao vivo (o coração) que corre no relógio, e as transições
+  ligadas na página que uma abertura carrega. Novos guiões no Aristotle: `api-tutor-differential.ts` (um modelo
+  substituto local que regista o que lhe pedem), `llm-differential.ts` (um OpenRouter substituto, os cabeçalhos de
+  identidade), `backup-differential.ts` (um `data/` copiado feito repositório com remoto: as mesmas mensagens de commit),
+  `tooling-differential.ts` (o Stop hook e as gates em duas worktrees).
+- **As diferenças permitidas escrevem-se antes.** Cada uma ficou no guião com a razão antes da corrida que a precisou
+  (o vermelho carmim, o verde, a lupa no telemóvel, o `build` no `/api/state`, o `app` e o `commit` no health, o 400
+  "Not JSON" e o 413, a descrição do `method`, os cartões de hover). Duas foram escritas depois de as ver, e o guião diz
+  isso: o kerning de "reading;" no chat, e nenhuma outra.
+- **A demo apanha o que os dados reais não têm.** Os dados reais não têm missões: só a biblioteca de demonstração
+  mostrou que o `agent.css` do núcleo estilizava qualquer `.side` (o painel da missão ficava esticado e, no telemóvel,
+  por cima da página). Corrigido na 0.8.1, com teste no exemplo que falha na 0.8.0. Correr sempre também com `--data`
+  da demo, que não foi usada para construir nada.
+- **O que o núcleo não tinha (0.8.0):** o CSP com hosts de imagens (`serve({ images })`, a Wikimedia), a `rail` da
+  `Frame` (a biblioteca) e o `busy` do Escape, os separadores agrupados (`createTabs({ group, legacyKeys })`), o
+  contador na `Ribbon`, `targets` e `entityOf` no `HoverCard`, `enhance` em lista no `Markdown` (cada um no seu efeito:
+  uma glosa nova não remonta as figuras vivas), `where` e `placeholder` no `ChatPanel`. Os cabeçalhos antigos do MCP
+  resolveram-se na app, como no Galen.
+- **Especificidade.** Uma regra do núcleo dentro de um componente leva a classe do Svelte e ganha a uma regra da app
+  com o mesmo número de classes. O "Your turn" do Aristotle é o acento, não o vermelho do Galen: ficou no `shell.css` da
+  app com uma classe a mais. E ao tirar de uma folha da app as regras iguais às do núcleo, uma regra igual só sai se
+  nenhuma regra da app a sobrepuser depois (o `.app` de três colunas apagava o layout do telemóvel do núcleo).
+- **`svelte-check --incremental` não vê os `.svelte` do núcleo** em `node_modules` (um `import type` deles falha): o
+  Aristotle tirou o `--incremental`, como o Galen.
+- **O TypeScript do núcleo em `node_modules` não corre em `node --test`**: o teste unitário das tabelas passou para o
+  núcleo (que já o tinha, com o padrão `[[conceito]]` do Aristotle); no Aristotle fica o teste do padrão.
+- **A publicação é o caminho crítico.** A 0.8.x ficou empacotada e com tag local à espera da palavra do Diogo para o
+  push; o trabalho seguiu na dev com o tarball local instalado (nunca commitado), e os módulos que dependiam dela
+  ficaram por commitar até ao pino.
+- **Onde ficou.** Na branch `organon`, 24 commits (1/n a 24/n, sem 12/n) sobre a 0.7.1; o resto (o `serve()`, a
+  moldura, o `Markdown`, o `HoverCard`, o chat, a 0.8.1) provado na dev e estacionado num commit só na branch
+  `organon-wip`, a dividir por módulo. A red team deixou uma lista de folgas nas provas (as permissões do
+  `/api/state` e do `mcp tools` largas demais, os explorables escondidos, as datas das revisões normalizadas, a
+  chamada a localhost:11434), a apertar antes do merge. Falta: o merge, a release, o rollback ensaiado, o `git clone`
+  público, e o Aristotle no `canary` das gates do Organon.
+
 ## O que se rejeitou, para ninguém voltar a tentar
 
 - **Publicar o servidor em TypeScript fonte.** O Node não o corre de `node_modules`. Um *loader* que tirasse os tipos
