@@ -3,6 +3,15 @@
 Every version an app can pin, newest first. Each says what an app must change to move to it (none, if nothing), so
 `docs/plano.md`'s rule holds: a fix in the core reaches an app only when the app moves its pin, after the canary.
 
+## 0.8.1
+
+**What an app changes:** nothing. An app with a `.side` of its own looks as it should again.
+
+- **Fix:** agent.css styled every `.side` and `.side-scrim` on the page as the chat beside a page (Page.svelte): an
+  app's own `.side` (Aristotle's mission page, its "Puts to work" panel) became a sticky panel the height of the
+  window, and on a small screen a fixed one over the page. The rules now hold only for Page's own (`.with-chat >
+  .side`). Found by Aristotle's UI differential on its demo library; the example's new browser test fails without it.
+
 ## 0.8.0
 
 **What an app changes:** nothing to keep working. Pulled by Aristotle's move to the core (docs/plano.md, step 3);

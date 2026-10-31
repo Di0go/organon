@@ -149,6 +149,8 @@
         <p class="page-lede">The smallest app on the core.</p>
       </header>
       <div class="pick"><LookPicker look={theme} /></div>
+      <!-- A class of the app's own that the core's chat panel also uses: the core's rules must leave it alone. -->
+      <aside class="side" data-testid="own-side">The app's own side note</aside>
       <p class="filled" data-testid="filled" data-tip="Filled with the accent, written in its --on-acc." data-tip-title="The accent">
         On the accent
       </p>

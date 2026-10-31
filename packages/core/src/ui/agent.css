@@ -168,7 +168,7 @@
 }
 
 /* The side panel never scrolls: its content does, so the chat's box stays at the foot. */
-.side {
+.with-chat > .side {
   position: sticky;
   top: var(--tabs-h);
   display: flex;
@@ -178,7 +178,7 @@
   border-left: 1px solid var(--rule);
 }
 
-.side-scrim {
+.with-chat > .side-scrim {
   display: none;
 }
 
@@ -187,7 +187,7 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .side {
+  .with-chat > .side {
     position: fixed;
     z-index: 38;
     top: 0;
@@ -198,7 +198,7 @@
     box-shadow: var(--shadow);
   }
 
-  .side-scrim {
+  .with-chat > .side-scrim {
     display: block;
     position: fixed;
     inset: 0;
@@ -208,8 +208,8 @@
 }
 
 /* Focus mode hides the chat beside a page too (Page.svelte). */
-html.focus .with-chat .side,
-html.focus .with-chat .side-scrim,
+html.focus .with-chat > .side,
+html.focus .with-chat > .side-scrim,
 html.focus .chat-open {
   display: none;
 }

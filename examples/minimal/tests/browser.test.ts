@@ -181,6 +181,26 @@ test("On a phone, the frame's rail (the app's index) slides in from the menu but
   await page.close();
 });
 
+test("The core's chat styles keep to the core's chat: an app's own .side is left as the app draws it, wide and on a phone", {
+  skip: !CHROMIUM,
+}, async () => {
+  for (const viewport of [
+    { width: 1600, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    const page = await browser!.newPage({ viewport });
+    await page.goto(app.base);
+    const own = page.getByTestId('own-side');
+    await own.waitFor();
+    const style = await own.evaluate((el) => {
+      const s = getComputedStyle(el);
+      return `${s.position} ${s.height === `${el.scrollHeight}px` ? 'its own height' : s.height}`;
+    });
+    assert.equal(style, 'static its own height', `${viewport.width}px`);
+    await page.close();
+  }
+});
+
 test("The core's Markdown runs each of the app's enhancers on its own: one following the app's state re-runs alone", {
   skip: !CHROMIUM,
 }, async () => {
